@@ -1,0 +1,233 @@
+#!bash
+
+# $Id$ $
+
+# This file is part of VnMiK-4.0.0
+
+##############################################################################
+# FILE TYPE EXTENSIONS
+##############################################################################
+
+export CAB_SUFFIX='.cab'
+export RAR_SUFFIX='.r'
+export TBZ_SUFFIX='.tar.bz2'
+export Z74_SUFFIX='.4'
+
+##############################################################################
+# 7z archives
+##############################################################################
+
+# #1: package; $2: destination
+# #2: windows format :(
+
+Z_EXTRACT()
+{
+	if [ $IGNORE_DOC_SOURCE -ge 1 ]; then
+		z x -p$VNMIKPW -xr!*texmf/doc* -xr!*texmf/source* -o"$2" -y "$1"
+	else
+		z x -p$VNMIKPW -o"$2" -y "$1"
+	fi
+}
+
+Z_TEST()
+{
+	z t -p$VNMIKPW "$1"
+}
+
+Z_GREP()
+{
+	# replace all \ by /
+	grep 'Extracting ' "$1" | gawk '{print $2}' | sed -e 's/\\/\//g'
+}
+
+##############################################################################
+# format for vnmik-4.0.0
+##############################################################################
+
+alias Z74_TEST=Z_TEST
+alias Z74_EXTRACT=Z_EXTRACT
+alias Z74_GREP=Z_GREP
+
+##############################################################################
+# for cabinet files
+##############################################################################
+
+# cabinet extrating
+CAB_EXTRACT()
+{
+	Z_EXTRACT "$1" "$2"
+}
+
+CAB_TEST()
+{
+	Z_TEST $*
+}
+
+CAB_GREP()
+{
+	Z_GREP $*
+}
+
+##############################################################################
+# for RAR packages
+##############################################################################
+
+RAR_EXTRACT()
+{
+	Z_EXTRACT "$1" "$2"
+}
+
+RAR_TEST()
+{
+	Z_TEST $*
+}
+
+RAR_GREP()
+{
+	Z_GREP $*
+}
+
+##############################################################################
+# for TBZ packages
+##############################################################################
+
+TBZ_EXTRACT()
+{
+	Z_EXTRACT "$1" "$2"
+}
+
+TBZ_TEST()
+{
+	Z_TEST $*
+}
+
+TBZ_GREP()
+{
+	Z_GREP $*
+}
+
+##############################################################################
+# install packages *.FOO
+##############################################################################
+
+# #1: type: CAB, RAR, TBZ, TGZ, Z74
+# #2: packages
+# date: 2006 Aug 06
+# update: 30 May 2008
+
+install_package_A()
+{
+	stat_log "installing packages of type $1; running core (A) version"
+	local TYPE=$1
+	local XSUFFIX=
+	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type
+	local DEST=`cygpath -w $PREFIX`
+	shift
+	while [ "x$1" != "x" ]; do
+		export PACKAGE=`basename "$1" $XSUFFIX`
+		stat_prefix "> $PACKAGE> "
+		# check whether package does exist and readable
+		if [ ! -f "$1" -o ! -r "$1" ]; then
+			stat_warn "unreadable: $1"
+			# add this package to list of FAILED packages
+			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
+			shift # ok. skip to next package
+			continue # skip to next package in WHILE loop
+		fi
+		stat_msg ''
+		# check for md5sum
+		if [ -f $PACKAGE.md5sum -a -r $PACKAGE.md5sum ]; then
+			md5sum -c $PACKAGE.md5sum > /dev/null 2>&1			
+		else # we donnot find any md5sum. so we try to test by using `test' option of compress program
+			${TYPE}_TEST "$1"  >/dev/null  2>&1
+		fi		
+		if [ $? -ge 1 ]; then # some errors occured
+			stat_warn "package corrupted"
+			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
+		else # everything seems OK
+			# the  log directory must be readable
+			check_RWFile $PREFIX/vnmik/log/$PACKAGE  || continue
+			stat_msh "extracting..."
+			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik/tmp 2>/dev/null
+			stat_log "package extracted; type: $TYPE; return value $?"
+			${TYPE}_GREP $PREFIX/vnmik/tmp > $PREFIX/vnmik/log/$PACKAGE
+			if [ -f $PREFIX/vnmik/postinstall/$PACKAGE \
+				-a -r $PREFIX/vnmik/postinstall/$PACKAGE ]; \
+			then
+				stat_msg "postinstall"
+				source $PREFIX/vnmik/postinstall/$PACKAGE
+				${PACKAGE}_install
+			fi
+			fix_mode_by_log "$PREFIX/vnmik/log/$PACKAGE"
+			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
+		fi
+		shift
+	done
+}
+
+install_package() # install packages *.r
+{
+
+	run_texhash=1
+	if [ "x$1" == "x--skip-texhash" ]; then
+		run_texhash=0
+		shift
+	fi
+
+	stat_log "install packages; running users' version"
+	if [ "x$1" == "x" ]; then
+		stat_warn "($FUNCNAME) nothing to do"
+		return 1
+	fi
+
+	check_RWVnMik # check for readable directory
+
+	PACKAGE_FAIL=
+	PACKAGE_OK=
+	# R: 7z packages
+	local R_PACKAGE=
+	local C_PACKAGE=
+	local B_PACKAGE=
+	local PKG_EXT=
+	while [ "x$1" != "x" ]; do
+		PKG_EXT="${1:(-4)}"
+		if [ "x$PKG_EXT" == "x.cab" ]; then
+			C_PACKAGE="$C_PACKAGE $1"
+		else
+			PKG_EXT="${1:(-2)}"
+			if [ "x$PKG_EXT" == "x.r" ]; then
+				R_PACKAGE="$R_PACKAGE $1"
+			elif [ "x$PKG_EXT" == "x.4" ]; then
+				R_PACKAGE="$R_PACKAGE $1"
+			else
+				PKG_EXT="${1:(-8)}"
+				if [ "x$PKG_EXT" == "x.tar.bz2" ]; then
+					B_PACKAGE="$B_PACKAGE $1"
+				else
+					stat_warn "unknown package: $1"
+				fi
+			fi
+		fi
+		shift
+	done
+
+	install_package_A RAR $R_PACKAGE
+	install_package_A CAB $C_PACKAGE
+	install_package_A TBZ $B_PACKAGE
+
+	stat_prefix ''
+
+	# save list of installed packages to log file
+	if [ -n "$PACKAGE_OK" ]; then
+		stat_done "package(s) installed: $PACKAGE_OK"
+		for p in $PACKAGE_OK; do
+			echo "$p" >> "$PREFIX/vnmik/log/pkg"
+		done
+	fi
+
+	[ -n "$PACKAGE_FAIL" ] && stat_warn "packages failed: $PACKAGE_FAIL"
+	[ $run_texhash == 0 ] || ( [ -n "$PACKAGE_OK" ] && texmf_texhash )
+	unset PACKAGE
+	unset PACKAGE_OK
+	unset PACKAGE_FAIL
+}
