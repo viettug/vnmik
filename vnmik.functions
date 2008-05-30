@@ -2,7 +2,7 @@
 
 ########################################################################
 #
-# $Id: 0functions 73 2006-12-08 07:32:39Z vnmik $
+# $Id$
 #
 # VnMiK: small MiKTeX for Vietnamese
 # Homepage: http://vnmik.sf.net/
@@ -30,6 +30,11 @@ pause()
 	echo "press any key to continue [ timeout: 5 seconds ]"
 	read -n1 -t 5 -s
 	set_color 0
+}
+
+msg()
+{
+	echo -e ":: $*"
 }
 
 set_color() # set text color : $1 = color number
@@ -521,194 +526,6 @@ texmf_texhash() # update miktex databased and make fonts maps
 	fi
 }
 
-# windows cabinet
-export CAB_SUFFIX='.cab'
-export RAR_SUFFIX='.r'
-export TBZ_SUFFIX='.tar.bz2'
-
-Z_EXTRACT()
-# #1: package; $2: destination
-# #2: windows format :(
-{
-	if [ $IGNORE_DOC_SOURCE -ge 1 ]; then
-		7z x -p$VNMIKPW -xr!*texmf/doc* -xr!*texmf/source* -o"$2" -y "$1"
-	else
-		7z x -p$VNMIKPW -o"$2" -y "$1"
-	fi
-}
-
-Z_TEST()
-{
-	7z t -p$VNMIKPW "$1"
-}
-
-Z_GREP()
-{
-	# replace all \ by /
-	grep 'Extracting ' "$1" | gawk '{print $2}' | sed -e 's/\\/\//g'
-}
-
-CAB_EXTRACT()
-# cabinet extrating
-# #1: cabinet
-# #2: destination
-{
-	Z_EXTRACT "$1" "$2"
-}
-
-CAB_TEST()
-{
-	Z_TEST $*
-}
-
-CAB_GREP()
-# #1: output file
-{
-	Z_GREP $*
-}
-
-RAR_EXTRACT()
-# #1: package; $2: destination
-# #2: windows format :(
-{
-	Z_EXTRACT "$1" "$2"
-}
-
-RAR_TEST()
-{
-	Z_TEST $*
-}
-
-RAR_GREP()
-{
-	Z_GREP $*
-}
-
-TBZ_EXTRACT()
-{
-	Z_EXTRACT "$1" "$2"
-}
-
-TBZ_TEST()
-{
-	Z_TEST $*
-}
-
-TBZ_GREP()
-{
-	Z_GREP $*
-}
-
-install_package_A() # install packages *.FOO
-# 2006 Aug 06
-# #1: type: CAB, RAR, TBZ, TGZ
-# #2: packages
-{
-	stat_log "installing packages of type $1; running core (A) version"
-	local TYPE=$1
-	# stat_log "package of type $TYPE; skipping to 7z by assigning TYPE=RAR"
-	# TYPE=RAR # we like 7zip --> RAR
-	local XSUFFIX=
-	eval XSUFFIX=\$${TYPE}_SUFFIX
-	#if [ "$TYPE" == "RAR" ]; then
-	#	local DEST=`cygpath -w $PREFIX`
-	#else
-	#	local DEST=$PREFIX
-	#fi
-	local DEST=`cygpath -w $PREFIX`
-	shift
-	while [ "x$1" != "x" ]; do
-		export PACKAGE=`basename "$1" $XSUFFIX`
-		stat_prefix "> $PACKAGE> "
-		if [ ! -f "$1" -o ! -r "$1" ]; then
-			stat_warn "unreadable: $1"
-			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
-			shift
-			continue
-		fi
-		stat_msg ''
-		if [ -f $PACKAGE.md5sum -a -r $PACKAGE.md5sum ]; then
-			md5sum -c $PACKAGE.md5sum > /dev/null 2>&1
-		else
-			${TYPE}_TEST "$1"  >/dev/null  2>&1
-		fi
-		if [ $? -ge 1 ]; then
-			stat_warn "package corrupted"
-			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
-		else
-			check_RWFile $PREFIX/vnmik/log/$PACKAGE \
-				|| continue
-			stat_msh "extracting..."
-			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik/tmp 2>/dev/null
-			stat_log "package extracted; type: $TYPE; return value $?"
-			${TYPE}_GREP $PREFIX/vnmik/tmp > $PREFIX/vnmik/log/$PACKAGE
-			if [ -f $PREFIX/vnmik/postinstall/$PACKAGE \
-				-a -r $PREFIX/vnmik/postinstall/$PACKAGE ]; \
-			then
-				stat_msg "postinstall"
-				source $PREFIX/vnmik/postinstall/$PACKAGE
-				${PACKAGE}_install
-			fi
-			fix_mode_by_log "$PREFIX/vnmik/log/$PACKAGE"
-			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
-		fi
-		shift
-	done
-}
-
-install_package() # install packages *.r
-{
-	stat_log "install packages; running users' version"
-	if [ "x$1" == "x" ]; then
-		stat_warn "($FUNCNAME) nothing to do"
-		return 1
-	fi
-	check_RWVnMik
-
-	PACKAGE_FAIL=
-	PACKAGE_OK=
-	local R_PACKAGE=
-	local C_PACKAGE=
-	local B_PACKAGE=
-	local PKG_EXT=
-	while [ "x$1" != "x" ]; do
-		PKG_EXT="${1:(-4)}"
-		if [ "x$PKG_EXT" == "x.cab" ]; then
-			C_PACKAGE="$C_PACKAGE $1"
-		else
-			PKG_EXT="${1:(-2)}"
-			if [ "x$PKG_EXT" == "x.r" ]; then
-				R_PACKAGE="$R_PACKAGE $1"
-			else
-				PKG_EXT="${1:(-8)}"
-				if [ "x$PKG_EXT" == "x.tar.bz2" ]; then
-					B_PACKAGE="$B_PACKAGE $1"
-				else
-					stat_warn "unknown package: $1"
-				fi
-			fi
-		fi
-		shift
-	done
-
-	install_package_A RAR $R_PACKAGE
-	install_package_A CAB $C_PACKAGE
-	install_package_A TBZ $B_PACKAGE
-
-	stat_prefix ''
-
-	if [ -n "$PACKAGE_OK" ]; then
-		stat_done "package(s) installed: $PACKAGE_OK"
-		for p in $PACKAGE_OK; do
-			echo "$p" >> "$PREFIX/vnmik/log/pkg"
-		done
-	fi
-	[ -n "$PACKAGE_FAIL" ] && stat_warn "packages failed: $PACKAGE_FAIL"
-	[ -n "$PACKAGE_OK" ] && texmf_texhash
-	unset PACKAGE
-	unset PACKAGE_OK
-	unset PACKAGE_FAIL
-}
 
 subs_file_A() # substitute with single slash
 # #1: to to substitue
