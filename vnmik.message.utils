@@ -54,11 +54,17 @@ stat_prefix()
 # ok. let's intialize something
 stat_prefix
 
-# write something to log file
+# RAW write something to log file
 stat_log() 
 {
 	[ -f "$LOGFILE" ] && echo "$@" >> $LOGFILE 2>/dev/null
 	return 0
+}
+
+# write time/date information to log file
+stat_date()
+{
+	stat_log "=== `date '+%Y/%m/%d %H:%M'` ==="
 }
 
 # notify that something has done
@@ -86,13 +92,13 @@ stat_fail()
 	local EXIT_IF_FAIL=0
 	local CLEANUP=0
 	while [ "x${1:0:2}" == "x--" ]; do
-		if [ "x$1" == "x--no-clean" ]; then
-			CLEANUP=0
-		elif [ "x$1" == "x--exit" ]; then
-			EXIT_IF_FAIL=1
-		fi
+		case "$1" in
+			"--no-clean") CLEANUP=0;;
+			"--exit") EXIT_IF_FAIL=1;;
+			*) continue;;
+		esac
 		shift
-	done	
+	done
 	set_color 32
 	echo "2$STAT_PREFIX$@"
 	stat_log "2$STAT_PREFIX$@"
