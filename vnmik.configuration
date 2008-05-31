@@ -1,0 +1,43 @@
+#!bash
+
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+##
+## USERS' SETTINGS
+##
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
+export IGNORE_DOC_SOURCE=1 # ignore texmf/doc and texmf/source
+
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+##
+## SHOULD BE CHANGED by VnMiK Maintainer
+##
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
+export MINSIZE=110 # minimum size
+export VERSION=3.0.3 # current vnmik version
+export MAJORVERSION=3 # the major version
+export VNMIKID=1026 # vnmik id; another way to save vnmik version
+export VNMIKPW= # password to extract 7z archives
+export MIKTEXVERSION='MikTeX-2.5.2471' # miktex version to be used
+
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+##
+## DON'T CHANGE ANYTHING BELOW, PLEASE
+##
+## ## ## ## ## ## ## ## ## ## ## ## ## ##
+
+# !!! hey DONOT change PREFIX !!!!
+# * texmf_config/miktex/editors.ini
+export PREFIX=/cygdrive/c/vnmik
+
+export PDFREADER=
+export LOGFILE=$PREFIX/vnmik/log/vnmik
+export STAT_PREFIX='> '
+export PKGSUFFIX='.r'
+
+export VNMIKBIN_PATH=
+export USERHOME=`cygpath -u "$USERPROFILE" 2>/dev/null`
+export ISPOWERED=0
+
+export GET_ME_RUN=0
