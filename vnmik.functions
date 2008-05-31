@@ -20,48 +20,12 @@
 #
 ########################################################################
 
-source 0conf
+source vnmik.configuration
+
 trap 'cleanup' SIGTERM SIGKILL SIGINT
 
-pause()
-{
-	set_color 31
-	echo ">>>"
-	echo "press any key to continue [ timeout: 5 seconds ]"
-	read -n1 -t 5 -s
-	set_color 0
-}
-
-msg()
-{
-	echo -e ":: $*"
-}
-
-set_color() # set text color : $1 = color number
-{
-	if [ -z "$1" ]; then
-		echo -en \\0033\[1\;30m
-	else
-		if [ "$1" == "0" ]; then
-			echo -en \\0033\[1\;30m
-		else
-			echo -en \\0033\[1\;$1m
-		fi
-	fi
-}
-
-test_color() # print list of text colors
-{
-	# list all color (from 1 to 80)
-	n=6
-	set_color 0
-	while [ $n -le 80 ]; do
-		echo -en \\0033\[1\;"$n"m
-		echo $n: xxxxxx
-		n=$((n+1))
-	done
-	set_color 0
-}
+source vnmik.message.utils
+source vnmik.package.installer
 
 cleanup() # cleanup vnmik installation
 {
@@ -73,78 +37,13 @@ clear_log() # clear vnmik log file and start new log
 #	( echo "[new setup, VnMiK ($VNMIKID=$VERSION)]" >> $LOGFILE ) > /dev/null 2>&1
 	echo "[ creating an empty log file $LOGFILE ]" > $LOGFILE 2>&1
 }
-
-stat_done() # notify that something has done
+pause() # pause for 5 seconds
 {
-	echo "0$STAT_PREFIX$@" | tee -a $LOGFILE 2>/dev/null
-	return 0
-}
-
-#stat_done() # notify that something has done
-#{
-#	stat_log $*
-#	return 0
-#}
-
-stat_log() # as (stat_msg) with white color
-{
-	[ -f "$LOGFILE" ] && echo "-$STAT_PREFIX$@" >> $LOGFILE 2>/dev/null
-	return 0
-}
-
-stat_warn() # expose the warning ( stdout and $LOGFILE )
-{
-	set_color 35
-	echo "1$STAT_PREFIX$@" | tee -a $LOGFILE 2>/dev/null
+	set_color 31
+	echo ">>>"
+	echo "press any key to continue [ timeout: 5 seconds ]"
+	read -n1 -t 5 -s
 	set_color 0
-	return 2
-}
-
-stat_fail() # program failed as some critical errors ( stdout and $LOGFILE )
-{
-	local EXIT_IF_FAIL=0
-	local CLEANUP=1
-	if [ "x$1" == "x--no-clean" ]; then
-		CLEANUP=0
-		shift
-	fi
-	if [ "x$1" == "x--exit" ]; then
-		EXIT_IF_FAIL=1
-		shift
-	fi
-	set_color 32
-	echo "2$STAT_PREFIX$@" | tee -a $LOGFILE 2>/dev/null
-	set_color 0
-	[ $CLEANUP -eq 1 ] && cleanup
-	if [ $EXIT_IF_FAIL -eq 1 ]; then
-		pause
-		exit 1
-	else
-		return 1
-	fi
-}
-
-stat_prefix() # change stat_* prefix. Useful for package installation
-# $1: prefix; empty means ' '
-{
-	if [ "x$1" == "x" ]; then
-		export STAT_PREFIX='> '
-	else
-		export STAT_PREFIX="$1"
-	fi
-}
-
-stat_msg() # print what we are going to do
-{
-	set_color 34
-	echo "0$STAT_PREFIX$@" | tee -a $LOGFILE 2>/dev/null
-	set_color 0
-}
-
-stat_msh() # notify that something has done
-{
-	echo "0$STAT_PREFIX$@" | tee -a $LOGFILE 2>/dev/null
-	return 0
 }
 
 check_OS() # check whether the OS is supported
@@ -374,7 +273,7 @@ query() # need users' confirmation ( yes/no question )
 	# shift
 
 	set_color 34
-	local MYPROMPT="q$STAT_PREFIX$2 (y/n)?" 
+	local MYPROMPT="q$STAT_PREFIX$2? (y/n) " 
 	[ "x$3" == "x" ] || MYPROMPT="q$STAT_PREFIX$2"
 	while : ; do
 		read -p "$MYPROMPT"
@@ -459,22 +358,7 @@ check_RWVnMik() # create basic directories and files for vnmik
 		mkdir -p $PREFIX/$D > /dev/null 2>&1
 		check_RWDir --exit $PREFIX/$D
 	done
-
 	check_RWFiles --exit --prefix "$PREFIX/vnmik/" $FILELIST
-
-	# create symbolic link $PREFIX/texmf <- $PREFIX/texmf
-	# need $PREFIX/texmf to install MiKTeX `cabinet' package
-	#if [ -d $PREFIX/texmf ]; then
-	#	if [ ! -L $PREFIX/texmf ]; then
-	#		stat_fail --exit "please delete $PREFIX/texmf"
-	#	fi
-	#else
-	#	ln -fs $PREFIX/texmf $PREFIX/texmf > /dev/null 2>&1
-	#	#.... must delay....?????
-	#	if [ ! -e $PREFIX/texmf -o ! -L $PREFIX/texmf ]; then
-	#		stat_fail --exit "failed creating symbolic link"
-	#	fi
-	#fi
 }
 
 install_version() # install vnmik version
@@ -484,40 +368,16 @@ install_version() # install vnmik version
 	echo "VNMIKID_A=$VNMIKID # $VERSION" > $PREFIX/vnmik/VERSION
 }
 
-test_package() # test package intergrity using md5sum (requires *.r package)
-{
-	stat_log "testing package intergrity"
-	local retcode=0
-	local PACKAGE
-	while [ "x$1" != "x" ]; do
-		if [ ! -f "$1" -o ! -r "$1" ]; then
-			stat_warn "unreadable: $1"
-			retcode=1
-		fi
-		PACKAGE=`basename "$1" $PKGSUFFIX`
-		if [ -f $PACKAGE.md5sum ]; then
-			md5sum -c $PACKAGE.md5sum >/dev/null 2>&1
-		else
-			rar t $PACKAGE$PKGSUFFIX > /dev/null 2>/dev/null
-		fi
-		if [ $? -ge 1 ]; then
-			stat_fail "package corrupted: $PACKAGE"
-			retcode=1
-		fi
-		shift
-	done
-	return $retcode
-}
-
 texmf_texhash() # update miktex databased and make fonts maps
 {
 	stat_msg "updating texmf database"
-	local TEXHASH=$PREFIX/texmf/miktex/bin/initexmf.exe
-	if [ ! -f "$TEXHASH" -o ! -x "$TEXHASH" ]; then
+	local TEXHASH=initexmf.exe
+	type $TEXHASH > /dev/null 2>&1
+	if [ $? -gt 0 ]; then
 		stat_warn "unexcutable: $TEXHASH"
 	else
 		( $TEXHASH -u > /dev/null 2>&1 ) \
-		&& ( $TEXHASH --mkmaps > /dev/null 2>&1 )
+			&& ( $TEXHASH --mkmaps > /dev/null 2>&1 )
 		if [ $? -ge 1 ]; then
 			stat_warn "($FUNCNAME) failed"
 		else
