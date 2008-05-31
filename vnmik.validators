@@ -8,9 +8,9 @@
 check_OS()
 {
 	if [ "x$OS" != "xWindows_NT" ]; then
-		stat_fail --exit "Require WinNT-liked system"
+		stat_fail --exit "require WinNT-liked system"
 	else
-		stat_done "System OK. You are using WinNT-liked system"
+		stat_done "you are using WinNT-liked system. That's good enough for VnMiK"
 	fi
 }
 
@@ -107,6 +107,7 @@ check_RFiles()
 check_DiskSpace()
 {
 	local MINSIZE="$1"
+	[ ! -z $MINSIZE ] || MINSIZE=0
 	local DISKSPACE=$(df "$PREFIX" | tail -1 | gawk '{print $4;}')
 	DISKSPACE=$((DISKSPACE/1024))
 	if [ $DISKSPACE -gt $MINSIZE ]; then
