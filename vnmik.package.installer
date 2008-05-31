@@ -20,7 +20,7 @@ export ZZ_SUFFIX='.4'
 # #1: package; $2: destination
 # #2: windows format :(
 
-Z_EXTRACT()
+ZZ_EXTRACT()
 {
 	stat_log "extracting package $1 using z program"
 	local ignore_doc=1
@@ -34,13 +34,13 @@ Z_EXTRACT()
 	fi
 }
 
-Z_TEST()
+ZZ_TEST()
 {
-	stat_log "testing package $1"
+	stat_log "testing package integrety for $1"
 	z t "$1" >/dev/null 2>&1
 }
 
-Z_GREP()
+ZZ_GREP()
 {
 	# replace all \ by /
 	grep 'Extracting ' "$1" | gawk '{print $2}' | sed -e 's/\\/\//g'
@@ -51,9 +51,9 @@ Z_GREP()
 ##############################################################################
 
 # cannot use alias. donnot know why
-alias ZZ_TEST=Z_TEST
-alias ZZ_EXTRACT=Z_EXTRACT
-alias ZZ_GREP=Z_GREP
+#alias ZZ_TEST=Z_TEST
+#alias ZZ_EXTRACT=Z_EXTRACT
+#alias ZZ_GREP=Z_GREP
 
 ##############################################################################
 # for cabinet files
@@ -124,18 +124,23 @@ TBZ_GREP()
 
 install_package_A()
 {
-	stat_log "installing packages of type $1; running core (A) version"
+	stat_date
+	stat_log "installing packages of type $1. running CORE version"
 	local TYPE=$1
 	local XSUFFIX=
 	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type. Excellent stuff :)
+	stat_log "suffix for packages of this type: $XSUFFIX"
 	local DEST=`cygpath -w $PREFIX`
+	stat_log "package will be installed to $DEST"
 
 	shift # skip package TYPE
 
 	while [ "x$1" != "x" ]; do
-		stat_date
+		stat_log "installing package $1"
+
 		export PACKAGE=`basename "$1" $XSUFFIX`
 		stat_prefix "> $PACKAGE> "
+
 		# check whether package does exist and readable
 		if [ ! -f "$1" -o ! -r "$1" ]; then
 			stat_warn "unreadable: $1"
@@ -144,13 +149,15 @@ install_package_A()
 			shift # ok. skip to next package
 			continue # skip to next package in WHILE loop
 		fi
+
 		stat_msg ''
+
 		# check for md5sum
 		if [ -f $PACKAGE.md5sum -a -r $PACKAGE.md5sum ]; then
 			stat_log "testing package using md5sum"
 			md5sum -c $PACKAGE.md5sum > /dev/null 2>&1			
-		else # we donnot find any md5sum. so we try to test by using `test' option of compress program
-			stat_log "testing packge using ${TYPE}_TEST"
+		else
+			stat_log "we donnot find any md5sum file for package. We try to use ${TYPE}_TEST"
 			${TYPE}_TEST "$1"
 		fi
 		if [ $? -ge 1 ]; then # some errors occured
@@ -158,7 +165,11 @@ install_package_A()
 			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
 		else # everything seems OK
 			# the  log directory must be readable
-			check_RWFile $PREFIX/vnmik/log/$PACKAGE  || continue
+			check_RWFile $PREFIX/vnmik/log/$PACKAGE
+			if [ $? -gt 0 ]; then
+				shift
+				continue
+			fi	
 			stat_msh "extracting..."
 			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik/tmp 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
@@ -185,22 +196,25 @@ install_package() # install packages *.r
 		shift
 	fi
 
-	stat_log "install packages; running users' version"
+	stat_log "install packages; running FRONT-END version"
 	if [ "x$1" == "x" ]; then
-		stat_warn "($FUNCNAME) nothing to do"
+		stat_warn "($FUNCNAME) nothing to do. no package was specified"
 		return 1
 	fi
 
 	check_RWVnMik # check for readable directory
 
+	# global list of failed/ok packages
 	PACKAGE_FAIL=
 	PACKAGE_OK=
+
 	# R: 7z packages
 	local R_PACKAGE=
 	local C_PACKAGE=
 	local B_PACKAGE=
 	local Z_PACKAGE=
 	local PKG_EXT=
+
 	while [ "x$1" != "x" ]; do
 		PKG_EXT="${1:(-4)}"
 		if [ "x$PKG_EXT" == "x.cab" ]; then
@@ -223,9 +237,7 @@ install_package() # install packages *.r
 		shift
 	done
 
-	#install_package_A RAR $R_PACKAGE
-	#install_package_A CAB $C_PACKAGE
-	#install_package_A TBZ $B_PACKAGE
+	# skip series C,R,B (vnmik 4.0.0)
 	install_package_A ZZ $Z_PACKAGE
 
 	stat_prefix ''
@@ -238,8 +250,9 @@ install_package() # install packages *.r
 		done
 	fi
 
-	[ -n "$PACKAGE_FAIL" ] && stat_warn "packages failed: $PACKAGE_FAIL"
+	[ -n "$PACKAGE_FAIL" ] && stat_warn "package(s) failed: $PACKAGE_FAIL"
 	[ $run_texhash == 0 ] || ( [ -n "$PACKAGE_OK" ] && texmf_texhash )
+
 	unset PACKAGE
 	unset PACKAGE_OK
 	unset PACKAGE_FAIL
