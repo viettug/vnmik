@@ -2,7 +2,7 @@
 
 # $Id$ $
 
-# This file is part of VnMiK-4.0.0
+# This file is part of VnMiK-4.0.0 <http://vnmik.sf.net>
 
 ##############################################################################
 # FILE TYPE EXTENSIONS
@@ -11,7 +11,7 @@
 export CAB_SUFFIX='.cab'
 export RAR_SUFFIX='.r'
 export TBZ_SUFFIX='.tar.bz2'
-export Z74_SUFFIX='.4'
+export ZZ_SUFFIX='.4'
 
 ##############################################################################
 # 7z archives
@@ -22,16 +22,22 @@ export Z74_SUFFIX='.4'
 
 Z_EXTRACT()
 {
-	if [ $IGNORE_DOC_SOURCE -ge 1 ]; then
-		z x -p$VNMIKPW -xr!*texmf/doc* -xr!*texmf/source* -o"$2" -y "$1"
+	stat_log "extracting package $1 using z program"
+	local ignore_doc=1
+	if [ "x$IGNORE_DOC_SOURCE" == "x0" ]; then
+		ignore_doc=0
+	fi
+	if [ $ignore_doc == 1 ]; then
+		z x -xr!*texmf/doc* -xr!*texmf/source* -o"$2" -y "$1"
 	else
-		z x -p$VNMIKPW -o"$2" -y "$1"
+		z x -o"$2" -y "$1"
 	fi
 }
 
 Z_TEST()
 {
-	z t -p$VNMIKPW "$1"
+	stat_log "testing package $1"
+	z t "$1" >/dev/null 2>&1
 }
 
 Z_GREP()
@@ -44,9 +50,10 @@ Z_GREP()
 # format for vnmik-4.0.0
 ##############################################################################
 
-alias Z74_TEST=Z_TEST
-alias Z74_EXTRACT=Z_EXTRACT
-alias Z74_GREP=Z_GREP
+# cannot use alias. donnot know why
+alias ZZ_TEST=Z_TEST
+alias ZZ_EXTRACT=Z_EXTRACT
+alias ZZ_GREP=Z_GREP
 
 ##############################################################################
 # for cabinet files
@@ -60,7 +67,7 @@ CAB_EXTRACT()
 
 CAB_TEST()
 {
-	Z_TEST $*
+	Z_TEST $* >/dev/null 2>&1
 }
 
 CAB_GREP()
@@ -79,7 +86,7 @@ RAR_EXTRACT()
 
 RAR_TEST()
 {
-	Z_TEST $*
+	Z_TEST $* >/dev/null 2>&1
 }
 
 RAR_GREP()
@@ -98,7 +105,7 @@ TBZ_EXTRACT()
 
 TBZ_TEST()
 {
-	Z_TEST $*
+	Z_TEST $* >/dev/null 2>&1
 }
 
 TBZ_GREP()
@@ -110,20 +117,23 @@ TBZ_GREP()
 # install packages *.FOO
 ##############################################################################
 
-# #1: type: CAB, RAR, TBZ, TGZ, Z74
+# #1: type: CAB, RAR, TBZ, TGZ, ZZ
 # #2: packages
 # date: 2006 Aug 06
-# update: 30 May 2008
+# update: 30 May 2008 (added ZZ)
 
 install_package_A()
 {
 	stat_log "installing packages of type $1; running core (A) version"
 	local TYPE=$1
 	local XSUFFIX=
-	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type
+	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type. Excellent stuff :)
 	local DEST=`cygpath -w $PREFIX`
-	shift
+
+	shift # skip package TYPE
+
 	while [ "x$1" != "x" ]; do
+		stat_date
 		export PACKAGE=`basename "$1" $XSUFFIX`
 		stat_prefix "> $PACKAGE> "
 		# check whether package does exist and readable
@@ -137,10 +147,12 @@ install_package_A()
 		stat_msg ''
 		# check for md5sum
 		if [ -f $PACKAGE.md5sum -a -r $PACKAGE.md5sum ]; then
+			stat_log "testing package using md5sum"
 			md5sum -c $PACKAGE.md5sum > /dev/null 2>&1			
 		else # we donnot find any md5sum. so we try to test by using `test' option of compress program
-			${TYPE}_TEST "$1"  >/dev/null  2>&1
-		fi		
+			stat_log "testing packge using ${TYPE}_TEST"
+			${TYPE}_TEST "$1"
+		fi
 		if [ $? -ge 1 ]; then # some errors occured
 			stat_warn "package corrupted"
 			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
@@ -154,7 +166,7 @@ install_package_A()
 			if [ -f $PREFIX/vnmik/postinstall/$PACKAGE \
 				-a -r $PREFIX/vnmik/postinstall/$PACKAGE ]; \
 			then
-				stat_msg "postinstall"
+				stat_msg "post-install"
 				source $PREFIX/vnmik/postinstall/$PACKAGE
 				${PACKAGE}_install
 			fi
@@ -167,8 +179,7 @@ install_package_A()
 
 install_package() # install packages *.r
 {
-
-	run_texhash=1
+	local run_texhash=1
 	if [ "x$1" == "x--skip-texhash" ]; then
 		run_texhash=0
 		shift
@@ -188,6 +199,7 @@ install_package() # install packages *.r
 	local R_PACKAGE=
 	local C_PACKAGE=
 	local B_PACKAGE=
+	local Z_PACKAGE=
 	local PKG_EXT=
 	while [ "x$1" != "x" ]; do
 		PKG_EXT="${1:(-4)}"
@@ -198,7 +210,7 @@ install_package() # install packages *.r
 			if [ "x$PKG_EXT" == "x.r" ]; then
 				R_PACKAGE="$R_PACKAGE $1"
 			elif [ "x$PKG_EXT" == "x.4" ]; then
-				R_PACKAGE="$R_PACKAGE $1"
+				Z_PACKAGE="$Z_PACKAGE $1"
 			else
 				PKG_EXT="${1:(-8)}"
 				if [ "x$PKG_EXT" == "x.tar.bz2" ]; then
@@ -211,9 +223,10 @@ install_package() # install packages *.r
 		shift
 	done
 
-	install_package_A RAR $R_PACKAGE
-	install_package_A CAB $C_PACKAGE
-	install_package_A TBZ $B_PACKAGE
+	#install_package_A RAR $R_PACKAGE
+	#install_package_A CAB $C_PACKAGE
+	#install_package_A TBZ $B_PACKAGE
+	install_package_A ZZ $Z_PACKAGE
 
 	stat_prefix ''
 
