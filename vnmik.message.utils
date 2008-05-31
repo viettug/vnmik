@@ -1,0 +1,124 @@
+#!bash
+
+# $Id$
+
+# This file is part of VnMiK 4.0.0 <http://vnmik.sf.net/>
+
+##############################################################################
+# color utils
+##############################################################################
+
+# set text color : $1 = color number
+set_color()
+{
+	if [ -z "$1" ]; then
+		echo -en \\0033\[1\;30m
+	else
+		if [ "$1" == "0" ]; then
+			echo -en \\0033\[1\;30m
+		else
+			echo -en \\0033\[1\;$1m
+		fi
+	fi
+}
+
+# list of all colors
+test_color()
+{
+	# list all color (from 1 to 80)
+	n=6
+	set_color 0
+	while [ $n -le 80 ]; do
+		echo -en \\0033\[1\;"$n"m
+		echo $n: xxxxxx
+		n=$((n+1))
+	done
+	set_color 0
+}
+
+##############################################################################
+# messge utils
+##############################################################################
+
+# change stat_* prefix. Useful for package installation
+# $1: prefix; empty means ' '
+stat_prefix()
+{
+	if [ "x$1" == "x" ]; then
+		export STAT_PREFIX='> '
+	else
+		export STAT_PREFIX="$1"
+	fi
+}
+
+# ok. let's intialize something
+stat_prefix
+
+# write something to log file
+stat_log() 
+{
+	[ -f "$LOGFILE" ] && echo "$@" >> $LOGFILE 2>/dev/null
+	return 0
+}
+
+# notify that something has done
+stat_done()
+{
+	echo "0$STAT_PREFIX$@"
+	stat_log "0$STAT_PREFIX$@"
+	return 0
+}
+
+# expose the warning ( stdout and $LOGFILE )
+stat_warn()
+{
+	set_color 35
+	echo "1$STAT_PREFIX$@"
+	stat_log "1$STAT_PREFIX$@"
+	set_color 0
+	return 2
+}
+
+# program failed as some critical errors ( stdout and $LOGFILE )
+# require `cleanup' (see below)
+stat_fail()
+{
+	local EXIT_IF_FAIL=0
+	local CLEANUP=0
+	while [ "x${1:0:2}" == "x--" ]; do
+		if [ "x$1" == "x--no-clean" ]; then
+			CLEANUP=0
+		elif [ "x$1" == "x--exit" ]; then
+			EXIT_IF_FAIL=1
+		fi
+		shift
+	done	
+	set_color 32
+	echo "2$STAT_PREFIX$@"
+	stat_log "2$STAT_PREFIX$@"
+	set_color 0
+	[ $CLEANUP -eq 1 ] && cleanup
+	if [ $EXIT_IF_FAIL -eq 1 ]; then
+		pause
+		exit 1
+	else
+		return 1
+	fi
+}
+
+# print what we are going to do
+stat_msg()
+{
+	set_color 34
+	echo "0$STAT_PREFIX$@"
+	stat_log "0$STAT_PREFIX$@"
+	set_color 0
+}
+
+# notify that something has done
+stat_msh()
+{
+	echo "0$STAT_PREFIX$@"
+	stat_log "0$STAT_PREFIX$@"
+	return 0
+}
