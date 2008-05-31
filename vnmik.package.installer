@@ -126,6 +126,7 @@ install_package_A()
 {
 	stat_date
 	stat_log "installing packages of type $1. running CORE version"
+	stat_log "package to be installed: $2"
 	local TYPE=$1
 	local XSUFFIX=
 	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type. Excellent stuff :)
