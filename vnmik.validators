@@ -71,7 +71,7 @@ check_RWFiles()
 			fi
 		else
 			if [ $NOTOUCH -eq 0 ]; then
-				echo -n '' >> "$testfile" 2>/dev/null
+				echo -n '' >> "$testfile" 2>/dev/null 1>/dev/null
 			fi
 			if [ ! -f "$testfile" -o ! -w "$testfile" ]; then
 				stat_fail $EXIT_IF_FAIL "un-writable: $testfile"
@@ -86,7 +86,10 @@ check_RWFiles()
 }
 
 # check whether file is readable and writable
-alias check_RWFile=check_RWFiles
+check_RWFile()
+{
+	check_RWFiles $@
+}
 
 # check whether file is readable
 check_RFiles()
