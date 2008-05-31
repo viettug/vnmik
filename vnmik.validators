@@ -1,0 +1,131 @@
+#!bash
+
+# $Id$
+
+# this file is part of VnMiK-4.0.0
+
+# check whether the OS is supported
+check_OS()
+{
+	if [ "x$OS" != "xWindows_NT" ]; then
+		stat_fail --exit "Require WinNT-liked system"
+	else
+		stat_done "System OK. You are using WinNT-liked system"
+	fi
+}
+
+# check if directory is writable
+check_RWDir()
+{
+	local EXIT_IF_FAIL=''
+	if [ "x$1" == "x--exit" ]; then
+		EXIT_IF_FAIL='--exit'
+		shift
+	fi
+
+	if [ "x$1" != "x" ]; then
+		if [ ! -d "$1" -o ! -w "$1" ]; then
+			stat_fail $EXIT_IF_FAIL "un-writable: $1"
+		else
+			stat_log "writable: $1"
+		fi
+	else
+		stat_warn "($FUNCNAME) missing argument"
+	fi
+}
+
+# check if files are writable and readable
+#
+# $0 [--no-touch] [--exit] [--prefix PREFIX/] file file...
+# PREFIX must be ended by a slash...
+check_RWFiles()
+{
+	local NOTOUCH=0
+	local EXIT_IF_FAIL=''
+	local FilePrefix=''
+	local retcode=0
+
+	# magic scanning for options, 31 May 2008
+	while [ "x${1:0:2}" == "x--" ]; do
+		case "$1" in
+			"--no-touch") NOTOUCH=1;;
+			"--exit") EXIT_IF_FAIL="--exit";;
+			"--prefix") shift; FilePrefix="$1";;
+			*) continue;
+		esac
+		shift
+	done
+
+	local testfile=
+	while [ "x$1" != "x" ]; do
+		testfile="$FilePrefix$1"
+		if [ -e "$testfile" ]; then
+			if [ -f "$testfile" ]; then
+				if [ ! -w "$testfile" ]; then
+					stat_fail $EXIT_IF_FAIL "unwritable: $testfile"
+					retcode=1
+				fi
+			else
+				stat_fail $EXIT_IF_FAIL "not a file: $testfile"
+				retcode=1
+			fi
+		else
+			if [ $NOTOUCH -eq 0 ]; then
+				echo -n '' >> "$testfile" 2>/dev/null
+			fi
+			if [ ! -f "$testfile" -o ! -w "$testfile" ]; then
+				stat_fail $EXIT_IF_FAIL "un-writable: $testfile"
+				retcode=1
+			else
+				stat_log "writable: $testfile"
+			fi
+		fi
+		shift
+	done
+	return $retcode
+}
+
+# check whether file is readable and writable
+alias check_RWFile=check_RWFiles
+
+# check whether file is readable
+check_RFiles()
+{
+	local retcode=0
+	while [ "x$1" != "x" ]; do
+		if [ ! -f "$1" -o ! -r "$1" ]; then
+			stat_warn "un-readable: $1"
+			retcode=1
+		fi
+		shift
+	done
+	return $retcode
+}
+
+# check for diskspace. require $MINSIZE (as MB)
+#  this new version requires MINSIZE is parsed as $1
+check_DiskSpace()
+{
+	local MINSIZE="$1"
+	local DISKSPACE=$(df "$PREFIX" | tail -1 | gawk '{print $4;}')
+	DISKSPACE=$((DISKSPACE/1024))
+	if [ $DISKSPACE -gt $MINSIZE ]; then
+		stat_done "disk space ok (require $MINSIZE MB, have $DISKSPACE MB)"
+	else
+		stat_fail "disk space NOT enough (require $MINSIZE MB, have $DISKSPACE MB)"
+	fi
+}
+
+# check for `reg.exe' program
+# #1: --exit ( exit if failed )
+check_RegeditProgram()
+{
+	stat_log "checking for registry program"
+	type -P reg.exe >/dev/null 2>&1
+	if [ $? -ge 1 ]; then
+		stat_fail $1 "registry tool not found"
+	else
+		stat_done $1 "registry tool found"
+		stat_log "registry found at `type -P reg.exe`"
+	fi
+}
