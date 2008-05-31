@@ -1,5 +1,3 @@
-#!bash
-
 # $Id$
 
 # This file is part of VnMiK 4.0.0 <http://vnmik.sf.net/>
@@ -64,7 +62,7 @@ stat_log()
 # write time/date information to log file
 stat_date()
 {
-	stat_log "=== `date '+%Y/%m/%d %H:%M'` ==="
+	stat_log "=== `date` ==="
 }
 
 # notify that something has done
