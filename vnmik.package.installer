@@ -165,23 +165,23 @@ install_package_A()
 			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
 		else # everything seems OK
 			# the  log directory must be readable
-			check_RWFile $PREFIX/vnmik/log/$PACKAGE
+			check_RWFile $PREFIX/vnmik.log/log.$PACKAGE
 			if [ $? -gt 0 ]; then
 				shift
 				continue
 			fi	
 			stat_msh "extracting..."
-			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik/tmp 2>/dev/null
+			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik.log/tmp 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
-			${TYPE}_GREP $PREFIX/vnmik/tmp > $PREFIX/vnmik/log/$PACKAGE
-			if [ -f $PREFIX/vnmik/postinstall/$PACKAGE \
-				-a -r $PREFIX/vnmik/postinstall/$PACKAGE ]; \
+			${TYPE}_GREP $PREFIX/vnmik.log/tmp > $PREFIX/vnmik.log/log.$PACKAGE
+			if [ -f $PREFIX/vnmik.log/$PACKAGE \
+				-a -r $PREFIX/vnmik.log/$PACKAGE ]; \
 			then
 				stat_msg "post-install"
-				source $PREFIX/vnmik/postinstall/$PACKAGE
+				source $PREFIX/vnmik.log/$PACKAGE
 				${PACKAGE}_install
 			fi
-			fix_mode_by_log "$PREFIX/vnmik/log/$PACKAGE"
+			fix_mode_by_log "$PREFIX/vnmik.log/log.$PACKAGE"
 			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
 		fi
 		shift
@@ -246,7 +246,7 @@ install_package() # install packages *.r
 	if [ -n "$PACKAGE_OK" ]; then
 		stat_done "package(s) installed: $PACKAGE_OK"
 		for p in $PACKAGE_OK; do
-			echo "$p" >> "$PREFIX/vnmik/log/pkg"
+			echo "$p" >> "$PREFIX/vnmik.log/log.packages"
 		done
 	fi
 

@@ -299,7 +299,7 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 	[ "x$2" != "x" ] \
 		|| (stat_log "($FUNCNAME) missing arguments"; return 1) \
 		|| return 1
-	check_RWFiles --prefix "$PREFIX/vnmik/" tmp tmpi \
+	check_RWFiles --prefix "$PREFIX/vnmik.log/" tmp tmpi \
 		|| return 1
 	check_RegeditProgram || return 1
 	regtool -q get \
@@ -422,22 +422,22 @@ test_stuff() {
 log_get_critical_issues()
 {
 	stat_log "getting critical issues from log file"
-	[ -f $PREFIX/vnmik/log/vnmik ] \
-		&& (grep '1>' $PREFIX/vnmik/log/vnmik | xsort -u \
-			> $PREFIX/vnmik/log/error.log )
-	[ -f $PREFIX/vnmik/log/error.log ] \
-		&& cat $PREFIX/vnmik/log/error.log
+	[ -f $PREFIX/vnmik.log/log.all ] \
+		&& (grep '1>' $PREFIX/vnmik.log/log.all | sort -u \
+			> $PREFIX/vnmik.log/log.error )
+	[ -f $PREFIX/vnmik.log/log.error ] \
+		&& cat $PREFIX/vnmik.log/log.error
 }
 
 # use internet explorer to display readme.html
 show_readme()
 {
 	stat_log "showing now readme.html"
-	[ -d "$PREFIX/doc" ] \
-		|| (stat_log "unreadable: $PREFIX/doc"; return 1 )\
+	[ -d "$PREFIX/tex.doc" ] \
+		|| (stat_log "unreadable: $PREFIX/tex.doc"; return 1 )\
 		|| return 1
-	local README=$PREFIX/doc/readme.html
-	local XREADME=$PREFIX/doc/readme2.html
+	local README=$PREFIX/tex.doc/readme.html
+	local XREADME=$PREFIX/tex.doc/readme2.html
 	check_RWFiles $XREAMDE \
 		|| ( stat_warn "unreadable: $XREADME" ; return 1 ) \
 		|| return 1
@@ -450,7 +450,7 @@ show_readme()
 	type explorer.exe 2>/dev/null >/dev/null
 	if [ $? -ge 1 ]; then
 		stat_warn "cannot locate IExplorer on your system"
-		stat_warn "please read c:/vnmik/doc/readme2.html"
+		stat_warn "please read c:/vnmik/tex.doc/readme2.html"
 		pause
 	else
 		explorer.exe "`cygpath -w $XREADME`" &
