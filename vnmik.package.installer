@@ -181,7 +181,8 @@ install_package_A()
 				source $PREFIX/vnmik.log/$PACKAGE
 				${PACKAGE}_install
 			fi
-			fix_mode_by_log "$PREFIX/vnmik.log/log.$PACKAGE"
+			stat_log "WARNING: skip fixing file modes (heavy task)"
+			# fix_mode_by_log "$PREFIX/vnmik.log/log.$PACKAGE"
 			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
 		fi
 		shift
@@ -244,7 +245,10 @@ install_package() # install packages *.r
 
 	# save list of installed packages to log file
 	if [ -n "$PACKAGE_OK" ]; then
-		stat_done "package(s) installed: $PACKAGE_OK"
+		stat_done "package(s) installed:"
+		for pkg in $PACKAGE_OK; do
+			stat_done "    $pkg"
+		done
 		for p in $PACKAGE_OK; do
 			echo "$p" >> "$PREFIX/vnmik.log/log.packages"
 		done
