@@ -157,7 +157,7 @@ check_RWRegistryDatabase() # check if $1 is writable. $1 is any REG. key
 check_RWVnMik()
 {
 	stat_log "checking read/write permission of $PREFIX"
-	local FILELIST="VERSION lock tmp tmpi log.vnmik"
+	local FILELIST="VERSION lock tmp tmpi log.all"
 	local DIRLIST="\
 		tex.editor \
 		tex.config \
