@@ -10,7 +10,7 @@ check_OS()
 	if [ "x$OS" != "xWindows_NT" ]; then
 		stat_fail --exit "require WinNT-liked system"
 	else
-		stat_done "you are using WinNT-liked system. That's good enough for VnMiK"
+		stat_done "you are using WinNT-liked system. that's good enough for VnMiK"
 	fi
 }
 
@@ -25,9 +25,9 @@ check_RWDir()
 
 	if [ "x$1" != "x" ]; then
 		if [ ! -d "$1" -o ! -w "$1" ]; then
-			stat_fail $EXIT_IF_FAIL "un-writable: $1"
+			stat_fail $EXIT_IF_FAIL "un-writable directory: $1"
 		else
-			stat_log "writable: $1"
+			stat_log "writable directory: $1"
 		fi
 	else
 		stat_warn "($FUNCNAME) missing argument"
@@ -62,7 +62,7 @@ check_RWFiles()
 		if [ -e "$testfile" ]; then
 			if [ -f "$testfile" ]; then
 				if [ ! -w "$testfile" ]; then
-					stat_fail $EXIT_IF_FAIL "unwritable: $testfile"
+					stat_fail $EXIT_IF_FAIL "un-writable file: $testfile"
 					retcode=1
 				fi
 			else
@@ -74,10 +74,10 @@ check_RWFiles()
 				echo -n '' >> "$testfile" 2>/dev/null 1>/dev/null
 			fi
 			if [ ! -f "$testfile" -o ! -w "$testfile" ]; then
-				stat_fail $EXIT_IF_FAIL "un-writable: $testfile"
+				stat_fail $EXIT_IF_FAIL "un-writable file: $testfile"
 				retcode=1
 			else
-				stat_log "writable: $testfile"
+				stat_log "writable file: $testfile"
 			fi
 		fi
 		shift
@@ -129,7 +129,166 @@ check_RegeditProgram()
 	if [ $? -ge 1 ]; then
 		stat_fail $1 "registry tool not found"
 	else
-		stat_done $1 "registry tool found"
+		stat_done "registry tool found"
 		stat_log "registry found at `type -P reg.exe`"
 	fi
 }
+
+check_RWRegistryDatabase() # check if $1 is writable. $1 is any REG. key
+{
+	stat_log "checking read/write permission to registry database"
+	local MKEY
+	if [ "x$1" == "x" ]; then
+		MKEY="HKCU"
+	else
+		MKEY="$1"
+	fi
+
+	regtool -q set "/$MKEY/Software/VnMiK" "$VNMIKID" > /dev/null 2>&1
+
+	if [ $? -ge 1 ]; then
+		stat_warn "unwritable: /$MKEY/Software/VnMiK"
+	else
+		stat_log "writable: /$MKEY/Software/VnMiK"
+	fi
+}
+
+# create basic directories and files for vnmik
+check_RWVnMik()
+{
+	stat_log "checking read/write permission of $PREFIX"
+	local FILELIST="VERSION lock tmp tmpi log.vnmik"
+	local DIRLIST="\
+		tex.editor \
+		tex.config \
+		tex.base \
+		tex.user \
+		tex.variant \
+		tex.apps \
+		tex.doc \
+		bin \
+		vnmik.log \
+		vnmik.package \
+		"
+
+	for D in $DIRLIST; do
+		mkdir -p $PREFIX/$D > /dev/null 2>&1
+		check_RWDir --exit $PREFIX/$D
+	done
+	check_RWFiles --exit --prefix "$PREFIX/vnmik.log/" $FILELIST
+}
+
+# locate PDF acrobat reader
+check_PDFReader()
+{
+	if [ "x$PDFREADER" != "x" ] ; then
+		if [ -f "$PDFREADER" -a -x "$PDFREADER" ]; then
+			stat_done "pdfreader: $PDFREADER"
+			return 0
+		else
+			stat_done "unexcutable: $PDFREADER"
+			return 1
+		fi
+	fi
+
+	# Though FoxitReader is faster and getting more popular today
+	# it doesnot support DDE commands. We still use Acrobat Reader
+	# as it is the only way we can work with texniccenter...
+	# If you like Foxit just replace `AcroExch' by `FoxitReader'
+
+	local PDF_READER_REG_PATH=/HKCR/AcroExch.Document/shell/open/command/
+	regtool -q check $PDF_READER_REG_PATH > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		PDFREADER=$(regtool -q get $PDF_READER_REG_PATH)
+		PDFREADER=$(echo "$PDFREADER" | sed -e 's/ "%1"//g' -e 's/"//g')
+		export PDFREADER=$(cygpath -u "$PDFREADER" 2>/dev/null )
+		if [ -f "$PDFREADER" -a -x "$PDFREADER" ]; then
+			stat_done "PdfReader: $PDFREADER"
+		else
+			stat_warn "PdfReader found in registry but it isnot executable. use Acrobat Reader as default"
+			export PDFREADER=$PREFIX/tex.apps/acroread/acrord32.exe
+			stat_warn "use default: $PDFREADER"
+		fi
+	else
+		export PDFREADER=$PREFIX/tex.apps/acroread/acrord32.exe
+		stat_warn "not found: PdfReader. use Acrobat Reader as default"
+	fi
+}
+
+check_UserHome()
+{
+	[ "x$USERHOME" != "x" ] && return 0 \
+	|| stat_warn "cannot locate User's Home"
+}
+
+check_PowerPrivilege()
+{
+	stat_log "checking power priviledge"
+	[ $ISPOWERED -eq 1 ] && return 1
+	regtool -q set "/HKLM/Software/VnMiK" "$VNMIKID" > /dev/null 2>&1
+	[ $? -eq 0 ] && export ISPOWERED=1
+	stat_log "is powerered = $ISPOWERED"
+	return $ISPOWERED
+}
+
+check_PreviousInstance() # check for previous instance of setup program
+{
+	stat_log "checking previous instance of setup program"
+	if [ -f $PREFIX/vnmik.log/lock ]; then
+		stat_warn "setup program is running OR being locked"
+		stat_fail --no-clean --exit "please remove $PREFIX/vnmik.log/lock"
+	else
+		stat_done "good. there isnot any previous instance"
+	fi
+}
+
+check_PATHinRegistry() # check for /HKCU/Environment/PATH
+{
+	stat_log "checking PATH in registry database"
+	stat_log "this test is needed to change search-directories for programs"
+	stat_log "TODO: how to refresh the system after something was added to PATH?"
+	regtool -q check '/HKCU/Environment/' > /dev/null 2>&1
+	if [ $? -ge 1 ]; then
+		# there is no /HKCU/Environment/
+		stat_log "there not PATH in /HKCU/. try to add default value"
+		regtool -q add '/HKCU/Environment' > /dev/null 2>&1
+		regtool -q set '/HKCU/Environment/PATH' '%PATH%' > /dev/null 2>&1
+	fi
+	# test again...
+	stat_log "test for PATH in /HKCU/, again"
+	regtool -q get '/HKCU/Environment/PATH' > /dev/null 2>&1
+	if [ $? -ge 1 ]; then
+		# there is no /HKCU/Environment/PATH
+		stat_log "PATH not found in /HKCU/. try to add once again"
+		regtool -q set '/HKCU/Environment/PATH' '%PATH%' > /dev/null 2>&1
+		stat_log "check for PATH in /HKCU/ again"		
+		regtool -q get '/HKCU/Environment/PATH' > /dev/null 2>&1
+		if [ $? -ge 1 ]; then		
+			stat_fail "un-writable/readable registry key: /HKCU/Environment/PATH"
+		else			
+			stat_log "writable registry key: /HKCU/Environment/PATH"
+		fi
+	else
+		stat_log "writable registry key: /HKCU/Environment/PATH"
+	fi
+}
+
+
+check_PreviousVersion() # check for previous version of VnMiK
+{
+	stat_log "checking previous VnMiK version; current: $VERSION ($VNMIKID)"
+	if [ -f $PREFIX/vnmik.log/VERSION ]; then
+		query 'y' "overwrite `cygpath -w $PREFIX`"
+		if [ $? -ge 1 ]; then
+			stat_fail --exit "query failed"
+		else
+			stat_done "query passed"
+		fi
+	elif [ -d $PREFIX ]; then
+		stat_fail --exit "please delete `cygpath -w $PREFIX`"
+	else
+		stat_done "previous VnMiK: none"
+	fi
+}
+
+stat_log "library loaded: vnmik.validators"

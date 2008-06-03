@@ -49,20 +49,19 @@ stat_prefix()
 	fi
 }
 
-# ok. let's intialize something
-stat_prefix
-
 # RAW write something to log file
 stat_log() 
 {
-	[ -f "$LOGFILE" ] && echo "$@" >> $LOGFILE 2>/dev/null
+	echo "$@" >> $LOGFILE 2>/dev/null
 	return 0
 }
 
 # write time/date information to log file
 stat_date()
 {
+	stat_log
 	stat_log "=== `date` ==="
+	stat_log
 }
 
 # notify that something has done
@@ -126,3 +125,8 @@ stat_msh()
 	stat_log "0$STAT_PREFIX$@"
 	return 0
 }
+
+# initialize something
+# ok. let's intialize something
+stat_prefix
+stat_log "library loaded: vnmik.message.utils"

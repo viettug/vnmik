@@ -124,7 +124,6 @@ TBZ_GREP()
 
 install_package_A()
 {
-	stat_date
 	stat_log "installing packages of type $1. running CORE version"
 	stat_log "package to be installed: $2"
 	local TYPE=$1
@@ -258,3 +257,5 @@ install_package() # install packages *.r
 	unset PACKAGE_OK
 	unset PACKAGE_FAIL
 }
+
+stat_log "library loaded: vnmik.package.installer"

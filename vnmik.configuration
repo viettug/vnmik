@@ -14,7 +14,7 @@ export MINSIZE=200 # minimum size
 export VERSION=4.0.0 # current vnmik version
 export MAJOR_VERSION=4 # the major version
 export VNMIKID=3141 # vnmik id; another way to save vnmik version
-export VNMIKPW= # password to extract 7z archives
+# export VNMIKPW= # password to extract 7z archives
 export MIKTEX_VERSION='MikTeX-2.7.0000' # miktex version to be used
 
 ##############################################################################
@@ -23,15 +23,16 @@ export MIKTEX_VERSION='MikTeX-2.7.0000' # miktex version to be used
 
 # !!! hey DONOT change PREFIX !!!!
 # * texmf_config/miktex/editors.ini
-export PREFIX=/cygdrive/c/vnmik
 
+PREFIX=`pwd`
+export PREFIX="/cygdrive/${PREFIX:10:1}/vnmik"
 export PDFREADER=
-export LOGFILE=$PREFIX/vnmik/log/vnmik
+export LOGFILE=$PREFIX/vnmik.log/log.all
 export STAT_PREFIX='> '
 export PKGSUFFIX=".$MAJORVERSION"
 
 export VNMIKBIN_PATH=
-export USERHOME=`cygpath -u "$USERPROFILE" 2>/dev/null`
+export USERHOME="`cygpath -u "$USERPROFILE" 2>/dev/null`"
 export ISPOWERED=0
 export GET_ME_RUN=0
 

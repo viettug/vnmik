@@ -24,12 +24,15 @@ source vnmik.configuration
 
 trap 'cleanup' SIGTERM SIGKILL SIGINT
 
-source vnmik.message.utils
-source vnmik.package.installer
-
 cleanup() # cleanup vnmik installation
 {
-	rm -f $PREFIX/vnmik/{lock,tmp,tmpi} "$@" >/dev/null 2>&1
+	rm -f $PREFIX/vnmik.log/{lock,tmp,tmpi} "$@" >/dev/null 2>&1
+	stat_log ""
+	stat_log "=== `date` ==="
+	stat_log "=== END OF SESSION === "
+	stat_log ""
+	stat_log "=== NEW SESSION ==="
+	stat_log ""
 }
 
 clear_log() # clear vnmik log file and start new log
@@ -37,116 +40,14 @@ clear_log() # clear vnmik log file and start new log
 #	( echo "[new setup, VnMiK ($VNMIKID=$VERSION)]" >> $LOGFILE ) > /dev/null 2>&1
 	echo "[ creating an empty log file $LOGFILE ]" > $LOGFILE 2>&1
 }
+
 pause() # pause for 5 seconds
 {
 	set_color 31
 	echo ">>>"
-	echo "press any key to continue [ timeout: 5 seconds ]"
+	echo ">>> press any key to continue [ timeout: 5 seconds ]"
 	read -n1 -t 5 -s
 	set_color 0
-}
-
-check_PDFReader() # locate PDF acrobat reader
-{
-	if [ "x$PDFREADER" != "x" ] ; then
-		if [ -f "$PDFREADER" -a -x "$PDFREADER" ]; then
-			stat_done "pdfreader: $PDFREADER"
-			return 0
-		else
-			stat_done "unexcutable: $PDFREADER"
-			return 1
-		fi
-	fi
-
-	# Though FoxitReader is faster and getting more popular today
-	# it doesnot support DDE commands. We still use Acrobat Reader
-	# as it is the only way we can work with texniccenter...
-	# If you like Foxit just replace `AcroExch' by `FoxitReader'
-
-	local PDF_READER_REG_PATH=/HKCR/AcroExch.Document/shell/open/command/
-
-	regtool -q check $PDF_READER_REG_PATH > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		PDFREADER=$(regtool -q get $PDF_READER_REG_PATH)
-		PDFREADER=$(echo "$PDFREADER" | sed -e 's/ "%1"//g' -e 's/"//g')
-		export PDFREADER=$(cygpath -u "$PDFREADER" 2>/dev/null )
-		if [ -f "$PDFREADER" -a -x "$PDFREADER" ]; then
-			stat_done "pdfreader: $PDFREADER"
-		else
-			stat_warn "not found: $PDFREADER"
-			export PDFREADER=$PREFIX/apps/pdfreader/acrord32.exe
-			stat_warn "use default: $PDFREADER"
-		fi
-	else
-		export PDFREADER=$PREFIX/apps/pdfreader/acrord32.exe
-		stat_warn "not found: pdfreader (use $PDFREADER)"
-	fi
-}
-
-check_RegeditProgram() # check for `reg.exe' program
-# #1: --exit ( exit if failed )
-{
-	stat_log "checking registry program"
-	local REGEDIT="`type -P reg.exe`"
-	if [ $? -ge 1 ]; then
-		stat_fail "$1" "not found: reg.exe"
-	else
-		stat_done "reg.exe: $REGEDIT"
-	fi
-}
-
-check_RWRegistryDatabase() # check if $1 is writable. $1 is any REG. key
-{
-	stat_log "checking read/write permission to registry database"
-	local MKEY
-	if [ "x$1" == "x" ]; then
-		MKEY="HKCU"
-	else
-		MKEY="$1"
-	fi
-
-	regtool -q set "/$MKEY/Software/VnMiK" "$VNMIKID" > /dev/null 2>&1
-
-	if [ $? -ge 1 ]; then
-		stat_warn "unwritable: /$MKEY/Software/VnMiK"
-	else
-		stat_log "writable: /$MKEY/Software/VnMiK"
-	fi
-}
-
-check_PowerPrivilege()
-{
-	stat_log "checking power priviledge"
-	[ $ISPOWERED -eq 1 ] && return 1
-	regtool -q set "/HKLM/Software/VnMiK" "$VNMIKID" > /dev/null 2>&1
-	[ $? -eq 1 ] && export ISPOWERED=1
-	return $ISPOWERED
-}
-
-check_PATHinRegistry() # check for /HKCU/Environment/PATH
-{
-	stat_log "checking PATH in registry database"
-	regtool -q check '/HKCU/Environment/' > /dev/null 2>&1
-	if [ $? -ge 1 ]; then
-		# there is no /HKCU/Environment/
-		regtool -q add '/HKCU/Environment' > /dev/null 2>&1
-		regtool -q set '/HKCU/Environment/PATH' '%PATH%' > /dev/null 2>&1
-	fi
-	# test again...
-	regtool -q get '/HKCU/Environment/PATH' > /dev/null 2>&1
-	if [ $? -ge 1 ]; then
-		# there is no /HKCU/Environment/PATH
-		regtool -q set '/HKCU/Environment/PATH' '%PATH%' > /dev/null 2>&1
-		# test again...
-		regtool -q get '/HKCU/Environment/PATH' > /dev/null 2>&1
-		if [ $? -ge 1 ]; then
-			stat_fail "unwritable: /HKCU/Environment/PATH"
-		else
-			stat_log "writable: /HKCU/Environment/PATH"
-		fi
-	else
-		stat_log "writable: /HKCU/Environment/PATH"
-	fi
 }
 
 query() # need users' confirmation ( yes/no question )
@@ -154,52 +55,25 @@ query() # need users' confirmation ( yes/no question )
 # 2: prompt
 # 3: (if not null) not of type y|n
 {
+	stat_log "starting query: prompt = $2, expected = $1, type = $3"
 	if [ -z "$2" ]; then
 		stat_warn "missing argument: (query)"
 		return 2
 	fi
 	local EXPECT_ANS="$1"
-	# shift
 
 	set_color 34
-	local MYPROMPT="q$STAT_PREFIX$2? (y/n) " 
+	local MYPROMPT="q$STAT_PREFIX$2? (y/n) "
 	[ "x$3" == "x" ] || MYPROMPT="q$STAT_PREFIX$2"
 	while : ; do
 		read -p "$MYPROMPT"
+		stat_log "user input: $REPLY"
 		[ "x$3" == "x" ] || break
 		[ "x$REPLY" == "xy" ] && break
 		[ "x$REPLY" == "xn" ] && break
 	done
 	set_color 0
 	[ "$REPLY" == "$EXPECT_ANS" ] && return 0 || return 1
-}
-
-check_Version() # check for previous version of VnMiK
-{
-	stat_log "checking previous VnMiK version; current: $VERSION ($VNMIKID)"
-	if [ -f $PREFIX/vnmik/VERSION ]; then
-		query 'y' "overwrite `cygpath -w $PREFIX`"
-		if [ $? -ge 1 ]; then
-			stat_fail --exit "query failed"
-		else
-			stat_done "query passed"
-		fi
-	elif [ -d $PREFIX ]; then
-		stat_fail --exit "please delete `cygpath -w $PREFIX`"
-	else
-		stat_done "previous VnMiK: none"
-	fi
-}
-
-check_PreviousInstance() # check for previous instance of setup program
-{
-	stat_log "checking previous instance of setup program"
-	if [ -f $PREFIX/vnmik/lock ]; then
-		stat_warn "setup program is running OR being locked"
-		stat_fail --no-clean --exit "please remove $PREFIX/vnmik/lock"
-	else
-		stat_done "previous me: none"
-	fi
 }
 
 hello() # print the hello message
@@ -221,40 +95,11 @@ hello() # print the hello message
 	HELLOC=
 }
 
-check_RWVnMik() # create basic directories and files for vnmik
-{
-	stat_log "checking read/write permission of c:/vnmik/"
-	local FILELIST="\
-		VERSION \
-		lock \
-		tmp \
-		tmpi \
-		log/vnmik \
-		log/pkg"
-
-	local DIRLIST="\
-		apps vnmik \
-		vnmik/log \
-		vnmik/postinstall \
-		vnmik/pkg \
-		vnmik/bin \
-		texmf \
-		texmf_user \
-		texmf_config \
-		texmf_vntex"
-
-	for D in $DIRLIST; do
-		mkdir -p $PREFIX/$D > /dev/null 2>&1
-		check_RWDir --exit $PREFIX/$D
-	done
-	check_RWFiles --exit --prefix "$PREFIX/vnmik/" $FILELIST
-}
-
 install_version() # install vnmik version
 {
 	stat_log "installing vnmik version"
-	check_RWFile $PREFIX/vnmik/VERSION
-	echo "VNMIKID_A=$VNMIKID # $VERSION" > $PREFIX/vnmik/VERSION
+	check_RWFile $PREFIX/vnmik.log/VERSION
+	echo "VNMIKID_A=$VNMIKID # $VERSION # `date`" > $PREFIX/vnmik.log/VERSION
 }
 
 texmf_texhash() # update miktex databased and make fonts maps
@@ -275,10 +120,9 @@ texmf_texhash() # update miktex databased and make fonts maps
 	fi
 }
 
-
 subs_file_A() # substitute with single slash
 # #1: to to substitue
-# #2: output; if empty written to $PREFIX/vnmik/tmp
+# #2: output; if empty written to $PREFIX/vnmik.log/tmp
 {
 	stat_log "substituting variable in files; running core (A) version"
 	local VAR
@@ -364,11 +208,11 @@ fix_PATH() # fix the path for this script
 
 reg_import() # import registry file ($1: unix path)
 {
-	stat_log "importing registry data from file"
+	stat_log "registry to be imported: $1"
 	[ "x$1" == "x" ] \
 		&& stat_warn "($FUNCNAME) missing arugment"
 	[ -f "$1" -a -r "$1" ] \
-		|| ( stat_warn "unreadable: $1"; return 1 ) \
+		|| ( stat_warn "un-readable file: $1"; return 1 ) \
 		|| return 1
 	check_RegeditProgram || return 1
 	reg.exe IMPORT "`cygpath -w \"$1\"`" >/dev/null 2>&1
@@ -388,8 +232,8 @@ reg_import_with_sub() # substitute variable and import registry file
 		return 1
 	fi
 	if [ -f "$1" -a -r "$1" ]; then
-		subs_file "$1" $PREFIX/vnmik/tmp \
-		&& reg_import $PREFIX/vnmik/tmp
+		subs_file "$1" $PREFIX/vnmik.log/tmp \
+		&& reg_import $PREFIX/vnmik.log/tmp
 	else
 		stat_fail "unreadable: $1"
 	fi
@@ -413,6 +257,7 @@ install_winfont() # install truetype fonts.
 # #2: font name (VnMiKu, MT Extra,...)
 # #3: overwrite  (--overwrite )
 {
+	stat_log "installing font file = $1, font name = $2"
 	if [ "x$2" == "x" ]; then
 		stat_warn "($FUNCNAME) missing argument"
 	elif [ ! -f "$2" -o ! -r "$2" ]; then
@@ -438,8 +283,8 @@ install_winfont() # install truetype fonts.
 					"$FONTNAME" >/dev/null 2>&1 ) \
 				|| stat_warn "failed installfont $FONTNAME, $1"
 		else
-			stat_warn "unwritable: $FONTDIR"
-			stat_warn "install manually ($2)"
+			stat_warn "unwritable-directory: $FONTDIR"
+			stat_warn "you MUST install manually font: $2 ($1)"
 		fi
 	fi
 }
@@ -449,7 +294,8 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 	# #1: name; #2: path
 #	txca.exe -a "english" "$1" "`cygpath -w \"$2\"`" ' ' '%dc' > /dev/null 2>&1
 #	[ $? -ge 1 ] && stat_warn "failed adding TXC menu: $2"
-	stat_log "installing TeXnicCenter menu"
+	stat_log "installing TeXnicCenter menu. require some magic proccess"
+	stat_log "TODO: need TXC version 2007. Didnot test on newer version"
 	[ "x$2" != "x" ] \
 		|| (stat_log "($FUNCNAME) missing arguments"; return 1) \
 		|| return 1
@@ -458,10 +304,10 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 	check_RegeditProgram || return 1
 	regtool -q get \
 		'/HKCU/Software/ToolsCenter/TeXnicCenter/Settings/Tools' \
-		>$PREFIX/vnmik/tmp 2>/dev/null
+		>$PREFIX/vnmik.log/tmp 2>/dev/null
 	if [ $? -ge 1 ]; then
 		stat_log 'query failed: /HKCU/Software/ToolsCenter/TeXnicCenter/Settings/Tools' 
-		printf "\x00\x00" > $PREFIX/vnmik/tmp
+		printf "\x00\x00" > $PREFIX/vnmik.log/tmp
 	fi
 	local Xcommand
 	Xcommand="`cygpath -w $2`"
@@ -474,12 +320,12 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 		-v "XACTION=add" \
 		-v "XPRINTREG=1" \
 		-v "VERBOSE=0" \
-		-- $PREFIX/vnmik/tmp  \
-		> $PREFIX/vnmik/tmpi 2>/dev/null
+		-- $PREFIX/vnmik.log/tmp  \
+		> $PREFIX/vnmik.log/tmpi 2>/dev/null
 	if [ $? -ge 1 ]; then
 		stat_warn "failed installing TXC menu ($1 -> $2)"
 	else
-		reg_import $PREFIX/vnmik/tmpi
+		reg_import $PREFIX/vnmik.log/tmpi
 	fi
 }
 
@@ -487,16 +333,15 @@ get_me_run() # update database
 {
 	stat_msg "going to updating VnMiK system"
 	export GET_ME_RUN=1
-	local XFILE="$PREFIX/vnmik/log/pkg"
-	# local YFILE="$PREFIX/vnmik/tmp"
+	local XFILE="$PREFIX/vnmik.log/log.package"
 	check_RWFile $XFILE || return 1
 	# sed -e 's/,/ /g' $XFILE > $YFILE
 	for pkg in `xsort -u $XFILE 2>/dev/null`; do
-		if [ -f "$PREFIX/vnmik/postinstall/$pkg" \
-			-a -r "$PREFIX/vnmik/postinstall/$pkg" ];
+		if [ -f "$PREFIX/vnmik.log/$pkg" \
+			-a -r "$PREFIX/vnmik.log/$pkg" ];
 		then
 			stat_prefix "> $pkg> "
-			source $PREFIX/vnmik/postinstall/$pkg
+			source $PREFIX/vnmik.oog/$pkg
 			${pkg}_install --update
 			stat_done "updated"
 		fi
@@ -509,8 +354,10 @@ get_me_run() # update database
 
 install_PATH() # added stuff to PATH. $1 = unix path
 {
-	local XTMP=$PREFIX/vnmik/tmp
-	local XTMPI=$PREFIX/vnmik/tmpi
+	stat_log "installing PATH = $1"
+
+	local XTMP=$PREFIX/vnmik.log/tmp
+	local XTMPI=$PREFIX/vnmik.log/tmpi
 	check_RWFile $XTMP || return 1
 
 	echo "$PATH" > $XTMP
@@ -524,7 +371,7 @@ install_PATH() # added stuff to PATH. $1 = unix path
 	regtool -q get '/HKCU/Environment/PATH' > "$XTMP" 2>/dev/null
 	if [ $? -ge 1 ]; then
 		regtool -q set '/HKCU/Environment/PATH' \
-			"%PATH%;`cygpath -w $1`" 2>/dev/null
+			"`cygpath -w $1`;%PATH%" 2>/dev/null
 		if [ $? -ge 1 ]; then
 			stat_warn "($FUNCNAME) failed: $1"
 		else
@@ -554,103 +401,17 @@ uninstall_by_log() # install a package using log file
 	stat_done 'do nothing now...'
 }
 
-check_UserHome()
-{
-	[ "x$USERHOME" != "x" ] && return 0 \
-	|| stat_warn "cannot locate User's Home"
-}
-
-
-ini_remove_section() # remove a section for ini file
+# remove a section for ini file
 # #1: section to remove, for example: [gsview-4.8]
 # #2: ini file
 # #3: output file
+ini_remove_section()
 {
 	[ "x$VNMIKBIN_PATH" != "x" ] || fix_PATH
 	[ "x$2" != "x" ] \
 		|| stat_warn "($FUNCNAME) missing argument" \
 		|| return 1
 	0ini_rm_sec -v "XSECTION=$1" -- "$2" > "$3" 2>/dev/null
-}
-
-download_package()
-{
-	# we should check if package shouldbe download from CTAN
-	# or vnmik homepage....
-	local TMSUFFIX="/systems/windows/miktex/tm/packages/"
-	[ "x$CTANSITES" != "x" ] || source 1ctansites
-	if  [ "x$CTANSITES" == "x" ]; then
-		stat_warn "empty CTAN_SITES :("
-		return 1
-	fi
-	local LASTCODE
-	#stat_prefix "$1"
-	for tmirror in $CTANSITES; do
-		stat_msg "downloading..."
-		wget -nd -c $tmirror$TMSUFFIX/"$1.cab"
-		LASTCODE=$?
-		if [ $LASTCODE -eq 1 ]; then
-			stat_warn "no such package"
-			break
-		elif [ $LASTCODE -eq 0 ]; then
-			break
-		else
-			stat_warn "failed fetching $1.cab from $tmirror"
-		fi
-	done
-	stat_msg "last code: $LASTCODE"
-	# test package: is it a LaTeX package ?
-	if [ $LASTCODE -eq 0 ]; then
-		stat_msg "to be installed: $1"
-	fi
-	#stat_prefix ''
-}
-
-install_net_package()
-{
-	[ "x$VNMIKBIN_PATH" != "x" ] || fix_PATH
-	local PKGED=$PREFIX/vnmik/log/pkg
-	local MIKTEXPKG=$VNMIKBIN_PATH/1miktexpkg
-	check_RFiles $PKGED || return 1
-	set_color 31
-	source 1ctansites
-	# read options from files...
-	# read options from users...
-	stat_msg "Press Enter to Quit"
-	while [ 1 ]; do
-		stat_prefix ''
-		query y "package(s): " --stop-at-first
-		[ "x$REPLY" != "x" ] || break
-		for pkg in $REPLY; do
-			stat_prefix "> $pkg> "
-			# check if packages was listed in $1miktexpkg
-			grep -E "^${pkg}$" $PKGED >/dev/null 2>&1
-			if [ $? -eq 0 ]; then
-				stat_done "already installed: $pkg"
-				continue
-			fi
-			# check if package was installed (by vnmik)
-			##grep -E "^${pkg}$" $MIKTEXPKG > /dev/null 2>&1
-			##if [ $? -ge 1 ]; then
-			##	stat_done "unknown package: $pkg"
-			##	continue
-			##fi
-			# check if package was installed in texmf
-			# query depends on configuration
-			if [ -f $PREFIX/texmf/tex/latex/$pkg/$pkg.sty ]; then
-				query y "$pkg was already installed. continue"
-				if [ $? -ge 1 ]; then
-					stat_done "query failed"
-					continue
-				else
-					stat_done "query passed"
-				fi
-			fi
-			download_package "$pkg"
-		done
-	done
-	stat_prefix ''
-	set_color 0
 }
 
 test_stuff() {
@@ -723,3 +484,5 @@ fix_mode_by_log()
 		echo
 	fi
 }
+
+stat_log "library loaded: vnmik.functions"
