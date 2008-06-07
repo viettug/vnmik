@@ -341,7 +341,7 @@ get_me_run() # update database
 			-a -r "$PREFIX/vnmik.log/$pkg" ];
 		then
 			stat_prefix "> $pkg> "
-			source $PREFIX/vnmik.oog/$pkg
+			source $PREFIX/vnmik.log/$pkg
 			${pkg}_install --update
 			stat_done "updated"
 		fi
