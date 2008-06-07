@@ -5,6 +5,7 @@ source vnmik.message.utils
 source vnmik.functions
 source vnmik.validators
 source vnmik.package.installer
+source vnmik.message.make
 source vnmik.registry.tools
 
 stat_warn "libraries reloaded"
