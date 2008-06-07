@@ -165,24 +165,23 @@ install_package_A()
 			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
 		else # everything seems OK
 			# the  log directory must be readable
-			check_RWFile $PREFIX/vnmik.log/log.$PACKAGE
+			check_RWFile $LOGDIR/log.$PACKAGE
 			if [ $? -gt 0 ]; then
 				shift
 				continue
 			fi	
 			stat_msh "extracting..."
-			${TYPE}_EXTRACT "$1" "$DEST" >$PREFIX/vnmik.log/tmp 2>/dev/null
+			${TYPE}_EXTRACT "$1" "$DEST" >$LOGDIR/tmp 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
-			${TYPE}_GREP $PREFIX/vnmik.log/tmp > $PREFIX/vnmik.log/log.$PACKAGE
-			if [ -f $PREFIX/vnmik.log/$PACKAGE \
-				-a -r $PREFIX/vnmik.log/$PACKAGE ]; \
+			${TYPE}_GREP $LOGDIR/tmp > $LOGDIR/log.$PACKAGE
+			if [ -f $LOGDIR/$PACKAGE -a -r $LOGDIR/$PACKAGE ]; \
 			then
 				stat_msg "post-install"
-				source $PREFIX/vnmik.log/$PACKAGE
+				source $LOGDIR/z.$PACKAGE
 				${PACKAGE}_install
 			fi
 			stat_log "WARNING: skip fixing file modes (heavy task)"
-			# fix_mode_by_log "$PREFIX/vnmik.log/log.$PACKAGE"
+			# fix_mode_by_log "$LOGDIR/log.$PACKAGE"
 			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
 		fi
 		shift
@@ -250,7 +249,7 @@ install_package() # install packages *.r
 			stat_done "    $pkg"
 		done
 		for p in $PACKAGE_OK; do
-			echo "$p" >> "$PREFIX/vnmik.log/log.packages"
+			echo "$p" >> "$LOGDIR/log.packages"
 		done
 	fi
 
