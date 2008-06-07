@@ -1,7 +1,5 @@
 #!bash
 
-source vnmik.configuration
-
 # make vnmik package
 # package name
 # list of files and other options to z program
