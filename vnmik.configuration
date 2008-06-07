@@ -27,7 +27,9 @@ export MIKTEX_VERSION='MikTeX-2.7.0000' # miktex version to be used
 PREFIX=`pwd`
 export PREFIX="/cygdrive/${PREFIX:10:1}/vnmik"
 export PDFREADER=
-export LOGFILE=$PREFIX/vnmik.log/log.all
+export LOGDIR=$PREFIX/vnmik.log
+export LOGFILE=$LOGDIR/log.all
+export PKGDIR=$PREFIX/vnmik.package
 export STAT_PREFIX='> '
 export PKG_SUFFIX=".$MAJOR_VERSION"
 
