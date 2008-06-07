@@ -1,0 +1,10 @@
+#!bash
+
+tex_base_install()
+{
+	stat_log "registry update: HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core / {Install,Roots}"
+	reg add 'HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core' /v "Install" /d "$PREFIX_WIN\\tex.base" /t REG_SZ /f
+	stat_log "return status: $?"
+	reg add 'HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core' /v "Roots" /d "$PREFIX_WIN\\tex.base;$PREFIX_WIN\\tex.user" /t REG_SZ /f
+	stat_log "return status: $?"
+}

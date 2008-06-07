@@ -1,0 +1,11 @@
+#!bash
+
+tex_bin_install()
+{
+	stat_log "install PATH $PREFIX/tex.bin"
+	install_PATH $PREFIX/tex.bin
+	stat_log "return status: $?"
+	stat_log "registry update: HKCU\Software\MiKTeX.org\MiKTeX\2.7\Yap\Settings / Check Associations"
+	reg add 'HKCU\Software\MiKTeX.org\MiKTeX\2.7\Yap\Settings' /v "Check Associations" /d 0 /t REG_DWORD /f 1>nul 2>nul
+	stat_log "return status: $?"
+}

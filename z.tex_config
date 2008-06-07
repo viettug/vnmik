@@ -1,0 +1,8 @@
+#!bash
+
+tex_config_install()
+{
+	stat_log "registry update: HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core / UserConfig"
+	reg add HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core /v "UserConfig" /d "$PREFIX_WIN\\tex.config" /t REG_SZ /f 1>nul 2>nul
+	stat_log "return status: $?"
+}

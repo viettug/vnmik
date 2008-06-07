@@ -1,0 +1,8 @@
+#!bash
+
+tex_varinstall()
+{
+	stat_log "registry update: HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core / UserData"
+	reg add HKCU\Software\MiKTeX.org\MiKTeX\2.7\Core /v "UserData" /d "$PREFIX_WIN\\tex.var" /t REG_SZ /f 1>nul 2>nul
+	stat_log "return status: $?"
+}
