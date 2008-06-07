@@ -1,0 +1,10 @@
+#!bash
+
+source vnmik.configuration
+source vnmik.message.utils
+source vnmik.functions
+source vnmik.validators
+source vnmik.package.installer
+source vnmik.registry.tools
+
+stat_warn "libraries reloaded"
