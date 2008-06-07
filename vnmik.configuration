@@ -26,6 +26,7 @@ export MIKTEX_VERSION='MikTeX-2.7.0000' # miktex version to be used
 
 PREFIX=`pwd`
 export PREFIX="/cygdrive/${PREFIX:10:1}/vnmik"
+export PREFIX_WIN="`cygpath -w $PREFIX`"
 export PDFREADER=
 export LOGDIR=$PREFIX/vnmik.log
 export LOGFILE=$LOGDIR/log.all

@@ -20,6 +20,7 @@ makepkg()
 		stat_log "cannot find script file: $script"
 		script=
 	fi
+	[ -f $dest ] && rm -fv $dest
 	z a $dest $script $@ # >> $LOGFILE
 	stat_log "creating checksum file..."
 	md5sum $dest > $dest.md5sum
