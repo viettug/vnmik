@@ -29,7 +29,7 @@ export PREFIX="/cygdrive/${PREFIX:10:1}/vnmik"
 export PDFREADER=
 export LOGFILE=$PREFIX/vnmik.log/log.all
 export STAT_PREFIX='> '
-export PKGSUFFIX=".$MAJORVERSION"
+export PKG_SUFFIX=".$MAJOR_VERSION"
 
 export VNMIKBIN_PATH=
 export USERHOME="`cygpath -u "$USERPROFILE" 2>/dev/null`"
