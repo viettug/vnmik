@@ -136,13 +136,14 @@ install_package_A()
 	shift # skip package TYPE
 
 	while [ "x$1" != "x" ]; do
-		stat_log "installing package $1"
+		local pkgfile="$1"
+		stat_log "installing package $pkgfile"
 
-		export PACKAGE=`basename "$1" $XSUFFIX`
+		export PACKAGE=`basename "$pkgfile" $XSUFFIX`
 		stat_prefix "> $PACKAGE> "
 
 		# check whether package does exist and readable
-		if [ ! -f "$1" -o ! -r "$1" ]; then
+		if [ ! -f "$pkgfile" -o ! -r "$pkgfile" ]; then
 			stat_warn "unreadable: $1"
 			# add this package to list of FAILED packages
 			export PACKAGE_FAIL="$PACKAGE $PACKAGE_FAIL"
@@ -153,9 +154,9 @@ install_package_A()
 		stat_msg ''
 
 		# check for md5sum
-		if [ -f $PACKAGE.md5sum -a -r $PACKAGE.md5sum ]; then
+		if [ -f $pkgfile.md5sum -a -r $pkgfile.md5sum ]; then
 			stat_log "testing package using md5sum"
-			md5sum -c $PACKAGE.md5sum > /dev/null 2>&1			
+			md5sum -c $pkgfile.md5sum > /dev/null 2>&1			
 		else
 			stat_log "we donnot find any md5sum file for package. We try to use ${TYPE}_TEST"
 			${TYPE}_TEST "$1"
@@ -174,13 +175,15 @@ install_package_A()
 			${TYPE}_EXTRACT "$1" "$DEST" >$LOGDIR/tmp 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
 			${TYPE}_GREP $LOGDIR/tmp > $LOGDIR/log.$PACKAGE
-			if [ -f $LOGDIR/z.$PACKAGE -a -r $LOGDIR/z.$PACKAGE ]; \
+			if [ -f $LOGDIR/z.$PACKAGE ];
 			then
 				stat_msg "post-install"
 				source $LOGDIR/z.$PACKAGE
 				${PACKAGE}_install
+			else
+				stat_log "post-install script not found: $LOGDIR/z.$PACKAGE"
 			fi
-			stat_log "WARNING: skip fixing file modes (heavy task)"
+			#stat_log "WARNING: skip fixing file modes (heavy task)"
 			# fix_mode_by_log "$LOGDIR/log.$PACKAGE"
 			export PACKAGE_OK="$PACKAGE $PACKAGE_OK"
 		fi
