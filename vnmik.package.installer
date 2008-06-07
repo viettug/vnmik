@@ -174,7 +174,7 @@ install_package_A()
 			${TYPE}_EXTRACT "$1" "$DEST" >$LOGDIR/tmp 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
 			${TYPE}_GREP $LOGDIR/tmp > $LOGDIR/log.$PACKAGE
-			if [ -f $LOGDIR/$PACKAGE -a -r $LOGDIR/$PACKAGE ]; \
+			if [ -f $LOGDIR/z.$PACKAGE -a -r $LOGDIR/z.$PACKAGE ]; \
 			then
 				stat_msg "post-install"
 				source $LOGDIR/z.$PACKAGE
