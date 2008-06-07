@@ -12,7 +12,7 @@ makepkg()
 		return 1
 	fi
 	cd $PREFIX
-	local pkg="$1"
+	local pkg="echo $1 | sed -e 's/./_/g'"
 	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	shift
 	local script=$PKGDIR/z.$pkg
