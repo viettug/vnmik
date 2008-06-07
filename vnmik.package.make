@@ -15,12 +15,12 @@ makepkg()
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
 	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	shift
-	local script=$PKGDIR/z.$pkg
-	if [ ! -f $script ]; then
+	local script=vnmik.package/z.$pkg
+	if [ ! -f $PREFIX/$script ]; then
 		stat_log "cannot find script file: $script"
 		script=
 	fi
-	z a $dest $script $@ >> $LOGFILE
+	z a $dest $script $@ # >> $LOGFILE
 	stat_log "creating checksum file..."
 	md5sum $dest > $dest.md5sum
 }
