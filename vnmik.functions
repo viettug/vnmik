@@ -341,7 +341,7 @@ get_me_run() # update database
 			-a -r "$LOGDIR/$pkg" ];
 		then
 			stat_prefix "> $pkg> "
-			source $LOGDIR/$pkg
+			source $LOGDIR/z.$pkg
 			${pkg}_install --update
 			stat_done "updated"
 		fi
