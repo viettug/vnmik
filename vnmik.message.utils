@@ -56,6 +56,21 @@ stat_log()
 	return 0
 }
 
+# append a file to LOG file
+stat_log_file()
+{
+	if [ "x$1" == "x" ]; then
+		stat_log "($FUNCNAME) missing parameter"
+		return 1
+	fi
+	if [ ! -f "$1" ]; then
+		stat_log "($FUNCAME) file unreadable: $1"
+	fi
+	stat_log "file content: $1 <<\EOF"
+	cat "$1" >> $LOGFILE 2>/dev/null
+	stat_log "EOF"
+}
+
 # write time/date information to log file
 stat_date()
 {
