@@ -11,7 +11,7 @@
 export CAB_SUFFIX='.cab'
 export RAR_SUFFIX='.r'
 export TBZ_SUFFIX='.tar.bz2'
-export ZZ_SUFFIX='.4'
+export ZZ_SUFFIX="$PKG_SUFFIX"
 
 ##############################################################################
 # 7z archives
