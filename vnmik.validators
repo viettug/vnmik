@@ -277,7 +277,7 @@ check_PATHinRegistry() # check for /HKCU/Environment/PATH
 check_PreviousVersion() # check for previous version of VnMiK
 {
 	stat_log "checking previous VnMiK version; current: $VERSION ($VNMIKID)"
-	if [ -f $PREFIX/vnmik.log/VERSION ]; then
+	if [ -f $LOGDIR/VERSION ]; then
 		query 'y' "overwrite `cygpath -w $PREFIX`"
 		if [ $? -ge 1 ]; then
 			stat_fail --exit "query failed"
