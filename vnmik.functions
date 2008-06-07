@@ -26,7 +26,7 @@ trap 'cleanup' SIGTERM SIGKILL SIGINT
 
 cleanup() # cleanup vnmik installation
 {
-	rm -f $PREFIX/vnmik.log/{lock,tmp,tmpi} "$@" >/dev/null 2>&1
+	rm -f $LOGDIR/{lock,tmp,tmpi} "$@" >/dev/null 2>&1
 	stat_log ""
 	stat_log "=== `date` ==="
 	stat_log "=== END OF SESSION === "
@@ -98,8 +98,8 @@ hello() # print the hello message
 install_version() # install vnmik version
 {
 	stat_log "installing vnmik version"
-	check_RWFile $PREFIX/vnmik.log/VERSION
-	echo "VNMIKID_A=$VNMIKID # $VERSION # `date`" > $PREFIX/vnmik.log/VERSION
+	check_RWFile $LOGDIR/VERSION
+	echo "VNMIKID_A=$VNMIKID # $VERSION # `date`" > $LOGDIR/VERSION
 }
 
 texmf_texhash() # update miktex databased and make fonts maps
@@ -122,7 +122,7 @@ texmf_texhash() # update miktex databased and make fonts maps
 
 subs_file_A() # substitute with single slash
 # #1: to to substitue
-# #2: output; if empty written to $PREFIX/vnmik.log/tmp
+# #2: output; if empty written to $LOGDIR/tmp
 {
 	stat_log "substituting variable in files; running core (A) version"
 	local VAR
@@ -232,8 +232,8 @@ reg_import_with_sub() # substitute variable and import registry file
 		return 1
 	fi
 	if [ -f "$1" -a -r "$1" ]; then
-		subs_file "$1" $PREFIX/vnmik.log/tmp \
-		&& reg_import $PREFIX/vnmik.log/tmp
+		subs_file "$1" $LOGDIR/tmp \
+		&& reg_import $LOGDIR/tmp
 	else
 		stat_fail "unreadable: $1"
 	fi
@@ -299,15 +299,15 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 	[ "x$2" != "x" ] \
 		|| (stat_log "($FUNCNAME) missing arguments"; return 1) \
 		|| return 1
-	check_RWFiles --prefix "$PREFIX/vnmik.log/" tmp tmpi \
+	check_RWFiles --prefix "$LOGDIR/" tmp tmpi \
 		|| return 1
 	check_RegeditProgram || return 1
 	regtool -q get \
 		'/HKCU/Software/ToolsCenter/TeXnicCenter/Settings/Tools' \
-		>$PREFIX/vnmik.log/tmp 2>/dev/null
+		>$LOGDIR/tmp 2>/dev/null
 	if [ $? -ge 1 ]; then
 		stat_log 'query failed: /HKCU/Software/ToolsCenter/TeXnicCenter/Settings/Tools' 
-		printf "\x00\x00" > $PREFIX/vnmik.log/tmp
+		printf "\x00\x00" > $LOGDIR/tmp
 	fi
 	local Xcommand
 	Xcommand="`cygpath -w $2`"
@@ -320,12 +320,12 @@ install_txc_menu() # install TeXnicCenter Tools Menu
 		-v "XACTION=add" \
 		-v "XPRINTREG=1" \
 		-v "VERBOSE=0" \
-		-- $PREFIX/vnmik.log/tmp  \
-		> $PREFIX/vnmik.log/tmpi 2>/dev/null
+		-- $LOGDIR/tmp  \
+		> $LOGDIR/tmpi 2>/dev/null
 	if [ $? -ge 1 ]; then
 		stat_warn "failed installing TXC menu ($1 -> $2)"
 	else
-		reg_import $PREFIX/vnmik.log/tmpi
+		reg_import $LOGDIR/tmpi
 	fi
 }
 
@@ -333,15 +333,15 @@ get_me_run() # update database
 {
 	stat_msg "going to updating VnMiK system"
 	export GET_ME_RUN=1
-	local XFILE="$PREFIX/vnmik.log/log.package"
+	local XFILE="$LOGDIR/log.package"
 	check_RWFile $XFILE || return 1
 	# sed -e 's/,/ /g' $XFILE > $YFILE
 	for pkg in `xsort -u $XFILE 2>/dev/null`; do
-		if [ -f "$PREFIX/vnmik.log/$pkg" \
-			-a -r "$PREFIX/vnmik.log/$pkg" ];
+		if [ -f "$LOGDIR/$pkg" \
+			-a -r "$LOGDIR/$pkg" ];
 		then
 			stat_prefix "> $pkg> "
-			source $PREFIX/vnmik.log/$pkg
+			source $LOGDIR/$pkg
 			${pkg}_install --update
 			stat_done "updated"
 		fi
@@ -356,8 +356,8 @@ install_PATH() # added stuff to PATH. $1 = unix path
 {
 	stat_log "installing PATH = $1"
 
-	local XTMP=$PREFIX/vnmik.log/tmp
-	local XTMPI=$PREFIX/vnmik.log/tmpi
+	local XTMP=$LOGDIR/tmp
+	local XTMPI=$LOGDIR/tmpi
 	check_RWFile $XTMP || return 1
 
 	echo "$PATH" > $XTMP
@@ -422,11 +422,11 @@ test_stuff() {
 log_get_critical_issues()
 {
 	stat_log "getting critical issues from log file"
-	[ -f $PREFIX/vnmik.log/log.all ] \
-		&& (grep '1>' $PREFIX/vnmik.log/log.all | sort -u \
-			> $PREFIX/vnmik.log/log.error )
-	[ -f $PREFIX/vnmik.log/log.error ] \
-		&& cat $PREFIX/vnmik.log/log.error
+	[ -f $LOGDIR/log.all ] \
+		&& (grep '1>' $LOGDIR/log.all | sort -u \
+			> $LOGDIR/log.error )
+	[ -f $LOGDIR/log.error ] \
+		&& cat $LOGDIR/log.error
 }
 
 # use internet explorer to display readme.html
