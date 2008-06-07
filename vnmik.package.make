@@ -7,24 +7,29 @@
 makepkg()
 {
 	stat_log "creating package: $*"
+	if [ "x$2" == "x" ]; then
+		stat_warn "($FUNCNAME) missing paramemeter"
+		return 1
+	fi
 	cd $PREFIX
 	local pkg="$1"
 	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	shift
 	local script=$PKGDIR/z.$pkg
 	if [ ! -f $script ]; then
-		stat_log "cannot find script file"
+		stat_log "cannot find script file: $script"
 		script=
 	fi
 	z a $dest $script $@ >> $LOGFILE
+	stat_log "creating checksum file..."
+	md5sum $dest > $dest.md5sum
 }
 
 makepkg_all()
 {
-	makepkg tex.bin "tex.bin/*"
-	makepkg tex.var "tex.var/*"
-	makepkg tex.user "tex.user/*"
-	makepkg tex.doc "tex.doc/*"
+	for pkg in bin var user doc ; do
+		makepkg tex.$pkg "tex.$pkg/*"
+	done	
 }
 
 stat_log "library loaded: vnmik.package.make"
