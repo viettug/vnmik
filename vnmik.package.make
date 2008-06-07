@@ -15,7 +15,7 @@ makepkg()
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
 	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	shift
-	local script=vnmik.package/z.$pkg
+	local script=vnmik.log/z.$pkg
 	if [ ! -f $PREFIX/$script ]; then
 		stat_log "cannot find script file: $script"
 		script=
