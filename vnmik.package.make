@@ -28,3 +28,5 @@ makepkg_all()
 	makepkg tex.user "tex.user/*"
 	makepkg tex.doc "tex.doc/*"
 }
+
+stat_log "library loaded: vnmik.package.make"
