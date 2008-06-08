@@ -1,0 +1,8 @@
+#!bash
+
+vnmik_test_install()
+{
+	cd $PREFIX/tex.doc/test
+	latex --halt-on-error vnmik_test
+	dvips vnmik_test.dvi
+}
