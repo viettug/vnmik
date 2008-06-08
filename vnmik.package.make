@@ -56,13 +56,14 @@ make_distro()
 {
 	cd $PREFIX
 	local dest="$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip"
-	rm -fm $dest
+	rm -fv $dest
 	stat_log "creating vnmik distro: $dest"
 	zip -0r \
 		$dest \
 		./{bin,vnmik.package} \
 		./*.bat \
 		-x "*svn*"
+	cd -	
 }
 
 stat_log "library loaded: vnmik.package.make"
