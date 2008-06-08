@@ -110,13 +110,11 @@ texmf_texhash() # update miktex databased and make fonts maps
 	if [ $? -gt 0 ]; then
 		stat_warn "unexcutable: $TEXHASH"
 	else
-		( $TEXHASH -u > /dev/null 2>&1 ) \
-			&& ( $TEXHASH --mkmaps > /dev/null 2>&1 )
-		if [ $? -ge 1 ]; then
-			stat_warn "($FUNCNAME) failed"
-		else
-			stat_done "($FUNCNAME) done"
-		fi
+		for option in "--dump --mklinks" "--mkmaps" "--update-fndb"; do		
+			stat_log "running: initexmf --verbose $option"
+			$TEXHASH --verbose $option
+			stat_log "return status: $?"
+		done	
 	fi
 }
 
