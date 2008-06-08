@@ -141,6 +141,11 @@ stat_msh()
 	return 0
 }
 
+msg()
+{
+	echo -e $@
+}
+
 # initialize something
 # ok. let's intialize something
 stat_prefix
