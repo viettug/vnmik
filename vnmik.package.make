@@ -26,11 +26,11 @@ makepkg()
 	md5sum $dest > $dest.md5sum
 }
 
-makepkg_all()
+makepkg_spec()
 {
-	for pkg in bin var user doc ; do
+	for pkg in $*; do
 		makepkg tex.$pkg "tex.$pkg/*"
-	done	
+	done
 }
 
 stat_log "library loaded: vnmik.package.make"
