@@ -1,0 +1,23 @@
+#!bash
+
+source vnmik.configuration
+source vnmik.message.utils
+source vnmik.functions
+source vnmik.validators
+source vnmik.package.installer
+source vnmik.package.make
+source vnmik.registry.tools
+
+hello
+
+msg
+stat_msg "INSTALLING"
+msg
+
+install_package \
+	$PKGDIR/tex_{base,config,user,var}$PKG_SUFFIX \
+	$PKGDIR/texmaker$PKG_SUFFIX
+
+texmf_texhash
+
+pause

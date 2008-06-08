@@ -1,0 +1,27 @@
+#!bash
+
+source vnmik.configuration
+source vnmik.message.utils
+source vnmik.functions
+source vnmik.validators
+source vnmik.package.installer
+source vnmik.package.make
+source vnmik.registry.tools
+
+hello
+
+msg
+stat_msg "UPDATING"
+msg
+
+for script in $LOGDIR/z.*; do
+	tmp="`basename $script`"
+	pkg="${tmp:2:${#tmp}}"
+	stat_msg "re-execute script z.$pkg"
+	source $script
+	${pkg}_install
+done
+
+texmf_texhash
+
+pause
