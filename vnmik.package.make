@@ -54,10 +54,11 @@ make_md5checksum()
 
 make_distro()
 {
+	cd $PREFIX
 	zip -0r \
 		$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip \
-		$PREFIX/{bin,vnmik.package} \
-		$PREFIX/*.bat \
+		./{bin,vnmik.package} \
+		./*.bat \
 		-x "*svn*"
 }
 
