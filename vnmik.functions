@@ -485,4 +485,9 @@ fix_mode_by_log()
 	fi
 }
 
+path_to_win()
+{
+	echo "`cygpath -w \"$1\"`"
+}
+
 stat_log "library loaded: vnmik.functions"
