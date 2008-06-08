@@ -22,8 +22,8 @@ makepkg_core()
 	[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
 	cd $PREFIX
 	z cfvj $dest $script $pattern | tee -a $LOGFILE
-	stat_log "creating checksum file..."
-	md5sum $dest > $dest.md5sum
+	# stat_log "creating checksum file..."
+	# md5sum $dest > $dest.md5sum
 }
 
 makepkg_spec()
@@ -42,5 +42,14 @@ makepkg()
 	esac
 }
 
+make_md5checksum()
+{
+	stat_log "creating md5sum files for packages..."
+	cd $PKGDIR
+	for f in *$PKG_SUFFIX; do
+		md5sum $f > $f.md5sum
+	done
+	cd -
+}
 
 stat_log "library loaded: vnmik.package.make"
