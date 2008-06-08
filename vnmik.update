@@ -19,7 +19,7 @@ for script in $LOGDIR/z.*; do
 	pkg="${tmp:2:${#tmp}}"
 	stat_msg "re-execute script z.$pkg"
 	source $script
-	${pkg}_install
+	${pkg}_install --update
 done
 
 texmf_texhash
