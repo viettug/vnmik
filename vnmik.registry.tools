@@ -30,22 +30,31 @@ registry_backup()
 # registry add a key
 registry_add()
 {
+	local skip_subkey_check=0
+	if [ "x$1" == "x--skip-subkey-check" ]; then
+		skip_subkey_check=1
+		shift
+	fi
 	local key="$3"
 	local value="$2"
 	local kind="$1"
 	stat_log "registry update: $kind, value=$value, key=$key, path=$path"
-	stat_log "getting list of subkeys..."
-	local sub_keys=""
-	local tmp_st="$key"
-	while [ "$tmp_st" != "/" ]; do
-		tmp_st="`dirname $tmp_st`"
-		sub_keys="$tmp_st $sub_keys"
-	done
-	for sub_key in $sub_keys; do
-		stat_log "creating subkey: $sub_key"
-		regtool add $sub_key > /dev/null 2>&1
-	done
-	stat_log "last return status: $?"
+	if [ $skip_subkey_check == 1 ]; then
+		stat_log "skip subkey check. may cause some errors in regtool's set action"
+	else	
+		stat_log "getting list of subkeys..."
+		local sub_keys=""
+		local tmp_st="$key"
+		while [ "$tmp_st" != "/" ]; do
+			tmp_st="`dirname $tmp_st`"
+			sub_keys="$tmp_st $sub_keys"
+		done
+		for sub_key in $sub_keys; do
+			stat_log "creating subkey: $sub_key"
+			regtool add $sub_key > /dev/null 2>&1
+		done
+		stat_log "last return status: $?"
+	fi
 	stat_log "going to execute: regtool set \"$kind\" \"$key\" \"$value\""
 	regtool set $kind "$key" "$value"
 	stat_log "return status: $?"
