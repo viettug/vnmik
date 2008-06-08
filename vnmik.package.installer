@@ -270,4 +270,53 @@ install_package() # install packages *.r
 	unset PACKAGE_FAIL
 }
 
+vnmik()
+{
+	local repos="http://download.tuxfamily.org/viettug/vnmik/4/repos/"
+
+	usage()
+	{
+		stat_log "($FUNCNAME) missing parameter. printing the usage page..."
+		msg "example:" 
+		msg "\tvnmik list :\t list all package"
+		msg "\tvnmik ins :\t install package"
+		msg "\tvnmik get :\t download a package from VietTUG repository"
+	}
+
+	check_arg()
+	{
+		if [ "x$2" == "x" ]; then
+			stat_log "$FUNCNAME $1 missing parameter"
+			msg "missing paramater"
+			usage
+			return 1
+		fi
+	}
+
+	stat_msg "welcome to vnmik package manager"
+	stat_log "vnmik was called with option(s): $*"
+
+	case $1 in
+	"list")
+		stat_done "all package(s) found on your system"
+		for pkg in $PKGDIR/*$PKG_SUFFIX; do
+			msg "\t" `basename $pkg $PKG_SUFFIX`
+		done
+	;;
+	"ins")
+		check_arg $* || return 1
+		local pkg="$PKGDIR/$2$PKG_SUFFIX"
+		[ -f $pkg ] || (stat_warn "package not found: $2") || return 2
+		install_package $pkg
+	;;
+	"get")
+		check_arg $* || return 1
+		stat_msg "download package $2"
+	;;
+	*)
+		usage
+	;;
+	esac
+}
+
 stat_log "library loaded: vnmik.package.installer"
