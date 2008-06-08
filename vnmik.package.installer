@@ -274,7 +274,7 @@ install_package() # install packages *.r
 
 vnmik()
 {
-	local repos="http://download.tuxfamily.org/viettug/vnmik/4/repos/"
+	local repos="http://download.tuxfamily.org/viettug/vnmik/repos/"
 
 	usage()
 	{
