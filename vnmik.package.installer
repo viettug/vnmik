@@ -18,26 +18,29 @@ export ZZ_SUFFIX="$PKG_SUFFIX"
 ##############################################################################
 
 # #1: package; $2: destination
-# #2: windows format :(
 
 ZZ_EXTRACT()
 {
 	stat_log "extracting package $1 using z program"
 	local ignore_doc=1
+	local pkg="$1"
+	local dest="$2"
 	if [ "x$IGNORE_DOC_SOURCE" == "x0" ]; then
 		ignore_doc=0
 	fi
 	if [ $ignore_doc == 1 ]; then
-		z x -xr!*texmf/doc* -xr!*texmf/source* -o"$2" -y "$1"
+		z xfvj "$pkg" --exclude="*texmf/doc*" --exclude="*texmf/source*" -C "$dest"
 	else
-		z x -o"$2" -y "$1"
+		# previous z: 7z program
+		# current z: tar bz
+		z xfvj "$pkg" -C "$dest"
 	fi
 }
 
 ZZ_TEST()
 {
 	stat_log "testing package integrety for $1"
-	z t "$1" >/dev/null 2>&1
+	z tfvj "$1" >/dev/null 2>&1
 }
 
 ZZ_GREP()

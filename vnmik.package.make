@@ -21,7 +21,7 @@ makepkg()
 		script=
 	fi
 	[ -f $dest ] && rm -fv $dest
-	z a $dest $script $@ # >> $LOGFILE
+	z cfvj $dest $script $@ | tee -a $LOGFILE
 	stat_log "creating checksum file..."
 	md5sum $dest > $dest.md5sum
 }
