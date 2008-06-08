@@ -11,17 +11,17 @@ makepkg()
 		stat_warn "($FUNCNAME) missing paramemeter"
 		return 1
 	fi
-	cd $PREFIX
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
 	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
-	shift
+	local pattern="$2"
 	local script=vnmik.log/z.$pkg
 	if [ ! -f $PREFIX/$script ]; then
 		stat_log "cannot find script file: $script"
 		script=
 	fi
-	[ -f $dest ] && rm -fv $dest
-	z cfvj $dest $script $@ | tee -a $LOGFILE
+	[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
+	cd $PREFIX
+	z cfvj $dest $script $pattern | tee -a $LOGFILE
 	stat_log "creating checksum file..."
 	md5sum $dest > $dest.md5sum
 }
