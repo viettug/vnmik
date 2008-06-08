@@ -38,7 +38,7 @@ makepkg()
 	case $1 in
 	"txc")makepkg_core txc "tex.editor/txc*";;
 	"texmaker")makepkg_core texmaker "tex.editor/texmaker/*";;
-	*)makepkg_space $*;;
+	*)makepkg_spec $*;;
 	esac
 }
 
