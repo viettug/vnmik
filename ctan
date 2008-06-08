@@ -15,6 +15,11 @@ HAVE_LZMA=0
 
 # functions
 
+tar()
+{
+	z $*
+}
+
 msg()
 {
 	echo -e ":: $*"
@@ -226,7 +231,7 @@ ctan_get()
 			msg
 			for pkg in `cat $DESTDIR/tmp.txt`; do
 				msg "downloading $pkg..."
-				wget -c "$CTAN_ARCHIVE/$pkg";
+				wget --directory-prefix=$PKGDIR/ctan -c "$CTAN_ARCHIVE/$pkg";
 			done				
 		fi		
 	else
@@ -240,7 +245,7 @@ ctan_get()
 			msg
 			for f in `cat $DESTDIR/tmp2.txt`; do
 				msg "downloading $pkg..."
-				wget -c "$CTAN_CONTRIB/$pkg.zip";
+				wget --directory-prefix=$PKGDIR/ctan -c "$CTAN_CONTRIB/$pkg.zip";
 			done	
 		fi
 	fi	
