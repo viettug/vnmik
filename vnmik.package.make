@@ -52,4 +52,13 @@ make_md5checksum()
 	cd -
 }
 
+make_distro()
+{
+	zip -0r \
+		$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip \
+		$PREFIX/{bin,vnmik.package} \
+		$PREFIX/*.bat \
+		-x "*svn*"
+}
+
 stat_log "library loaded: vnmik.package.make"
