@@ -1,0 +1,54 @@
+#!bash
+
+registry_backup()
+{
+	stat_msg "backing up current TeX system configuration..."
+	local prefix=$PREFIX/vnmik.log/bk.`date +%y.%m.%d`
+	if [ -d $prefix ]; then
+		stat_warn "backup directory does exist: $prefix"
+		query 'y' "press y to backup again. Old data will be lost"
+		if [ $? -gt 0 ]; then
+			return 0
+		fi
+	fi
+	mkdir -p $prefix > /dev/null
+	if [ $? -ge 1 ]; then
+		stat_warn "failed to create directory $prefix"
+		return 1
+	fi
+	cd $prefix
+
+	echo -ne '' > tmp
+	reg export 'HKCU\Software\Classes\.dvi' dvi.reg >> tmp
+	reg export 'HKCU\Software\Classes\.ps' ps.reg >> tmp
+	reg export 'HKCU\Software\MiKTeX.org\MiKTeX\2.7' mik1.reg >> tmp
+	reg export 'HKLM\Software\MiKTeX.org\MiKTeX\2.7' mik2.reg >> tmp
+	[ -f "$USERHOME/gsview32.ini" ] && (cp "$USERHOME/gsview32.ini" gsview32.ini -v >> tmp)
+	stat_log_file tmp
+}
+
+# registry add a key
+registry_add()
+{
+	local key="$3"
+	local value="$2"
+	local kind="$1"
+	stat_log "registry update: $kind, value=$value, key=$key, path=$path"
+	stat_log "getting list of subkeys..."
+	local sub_keys=""
+	local tmp_st="$key"
+	while [ "$tmp_st" != "/" ]; do
+		tmp_st="`dirname $tmp_st`"
+		sub_keys="$tmp_st $sub_keys"
+	done
+	for sub_key in $sub_keys; do
+		stat_log "creating subkey: $sub_key"
+		regtool add $sub_key > /dev/null 2>&1
+	done
+	stat_log "last return status: $?"
+	stat_log "going to execute: regtool set \"$kind\" \"$key\" \"$value\""
+	regtool set $kind "$key" "$value"
+	stat_log "return status: $?"
+}
+
+stat_log "library loaded: vnmik.registry.tools"
