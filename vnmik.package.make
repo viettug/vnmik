@@ -38,6 +38,7 @@ makepkg()
 	case $1 in
 	"txc")makepkg_core txc "tex.editor/txc*";;
 	"texmaker")makepkg_core texmaker "tex.editor/texmaker/*";;
+	"test")makepkg_core vnmik_test "tex.doc/test/*.tex";;
 	*)makepkg_spec $*;;
 	esac
 }
