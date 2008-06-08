@@ -3,5 +3,6 @@
 tex_bin_install()
 {
 	install_PATH $PREFIX/tex.bin
-	registry_add --dword 0 "/user/Software/MiKTeX.org/MiKTeX/2.7/Yap/Settings/Check\ Associations"
+	registry_add --dword 0 "/user/software/miktex.org/miketx/2.7/yaps/settings/check\ associations"
+	# TODO: check associations =1 for vnmik HARD_DISK Installatino
 }
