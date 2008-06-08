@@ -55,8 +55,11 @@ make_md5checksum()
 make_distro()
 {
 	cd $PREFIX
+	local dest="$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip"
+	rm -fm $dest
+	stat_log "creating vnmik distro: $dest"
 	zip -0r \
-		$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip \
+		$dest \
 		./{bin,vnmik.package} \
 		./*.bat \
 		-x "*svn*"
