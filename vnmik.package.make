@@ -60,7 +60,8 @@ make_distro()
 	stat_log "creating vnmik distro: $dest"
 	zip -0r \
 		$dest \
-		./{bin,vnmik.package} \
+		./bin/ \
+		./vnmik.package/*$PKG_SUFFIX \
 		./*.bat \
 		-x "*svn*"
 	cd -	
