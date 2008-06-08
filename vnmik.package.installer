@@ -22,19 +22,9 @@ export ZZ_SUFFIX="$PKG_SUFFIX"
 ZZ_EXTRACT()
 {
 	stat_log "extracting package $1 using z program"
-	local ignore_doc=1
 	local pkg="$1"
 	local dest="$2"
-	if [ "x$IGNORE_DOC_SOURCE" == "x0" ]; then
-		ignore_doc=0
-	fi
-	if [ $ignore_doc == 1 ]; then
-		z xfvj "$pkg" --exclude="*texmf/doc*" --exclude="*texmf/source*" -C "$dest"
-	else
-		# previous z: 7z program
-		# current z: tar bz
-		z xfvj "$pkg" -C "$dest"
-	fi
+	z xfvj "$pkg" -C "$dest"
 }
 
 ZZ_TEST()
@@ -320,7 +310,7 @@ vnmik()
 				do_install=1
 			fi
 		fi
-		[ $do_install ==0 ] ||  install_package $pkg
+		[ $do_install == 0 ] ||  install_package $pkg
 	;;
 	"get")
 		check_arg $* || return 1
