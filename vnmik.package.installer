@@ -261,7 +261,9 @@ install_package() # install packages *.r
 	fi
 
 	[ -n "$PACKAGE_FAIL" ] && stat_warn "package(s) failed: $PACKAGE_FAIL"
-	[ $run_texhash == 0 ] || ( [ -n "$PACKAGE_OK" ] && texmf_texhash )
+
+	stat_log "skip update texdatabase in ($FUNCNAME). please check it out manually"
+	# [ $run_texhash == 0 ] || ( [ -n "$PACKAGE_OK" ] && texmf_texhash )
 
 	unset PACKAGE
 	unset PACKAGE_OK
