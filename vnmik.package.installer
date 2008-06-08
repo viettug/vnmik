@@ -41,7 +41,9 @@ ZZ_TEST()
 {
 	stat_log "testing package integrety for $1"
 	z tfvj "$1" >/dev/null 2>&1
-	stat_log "return status: $?"
+	local error=$?
+	stat_log "return status: $error"
+	return $error
 }
 
 ZZ_GREP()
