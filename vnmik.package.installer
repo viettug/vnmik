@@ -313,7 +313,10 @@ vnmik()
 	;;
 	"get")
 		check_arg $* || return 1
-		stat_msg "download package $2"
+		local pkg="$2"
+		stat_msg "downloading $pkg$PKG_SUFFIX from $repos"
+		wget "$repos/$pkg$PKG_SUFFIX" -O $PKGDIR/$pkg$PKG_SUFFIX
+		stat_log "wget returns $?"
 	;;
 	*)
 		usage
