@@ -2,5 +2,5 @@
 
 tex_var_install()
 {
-	registry_add --string 0 "`path_to_win $PREFIX/tex.var`" "/HKCU/software/miktex.org/miktex/2.7/core/userdata"
+	registry_add --string "`path_to_win $PREFIX/tex.var`" "/HKCU/software/miktex.org/miktex/2.7/core/userdata"
 }
