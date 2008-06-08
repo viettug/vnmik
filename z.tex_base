@@ -2,7 +2,7 @@
 
 tex_base_install()
 {
-	local miktex_path=HKCU/software/miktex.org/miktex/2.7/core
+	local miktex_path=/HKCU/software/miktex.org/miktex/2.7/core
 	registry_add --string "`path_to_win $PREFIX/tex.base`" $miktex_path/install
 	registry_add --string "`path_to_win $PREIFX/tex.base`;`path_to_win $PREFIX/tex.user`" $miktex_path/root
 }
