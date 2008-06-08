@@ -15,8 +15,7 @@ stat_msg "INSTALLING"
 msg
 
 install_package \
-	$PKGDIR/tex_{base,config,user,var}$PKG_SUFFIX \
-	$PKGDIR/texmaker$PKG_SUFFIX
+	$PKGDIR/{tex_{base,config,user,var},texmaker,vnmik_test}$PKG_SUFFIX
 
 texmf_texhash
 
