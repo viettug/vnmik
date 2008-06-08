@@ -46,7 +46,7 @@ registry_add()
 		local sub_keys=""
 		local tmp_st="$key"
 		while [ "$tmp_st" != "/" ]; do
-			tmp_st="`dirname $tmp_st`"
+			tmp_st="`dirname \"$tmp_st\"`"
 			sub_keys="$tmp_st $sub_keys"
 		done
 		for sub_key in $sub_keys; do
