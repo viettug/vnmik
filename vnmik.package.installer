@@ -307,9 +307,20 @@ vnmik()
 	;;
 	"ins")
 		check_arg $* || return 1
-		local pkg="$PKGDIR/$2$PKG_SUFFIX"
+		local pkg_name=$2
+		local pkg="$PKGDIR/$pkg_name$PKG_SUFFIX"
 		[ -f $pkg ] || (stat_warn "package not found: $2") || return 2
-		install_package $pkg
+		local do_install=0
+		grep -q $pkg_name $LOGDIR/log.packages
+		if [ $? -ge 1 ]; then
+			do_install=1
+		else
+			query y "package $pkg_name already installed. Re-install"
+			if [ $? == 0 ]; then
+				do_install=1
+			fi
+		fi
+		[ $do_install ==0 ] ||  install_package $pkg
 	;;
 	"get")
 		check_arg $* || return 1
