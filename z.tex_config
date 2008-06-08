@@ -2,5 +2,5 @@
 
 tex_config_install()
 {
-	regigistry_add --string "`path_to_win $PREFIX/tex.config`" /HKCU/software/miktex.org/miktex/2.7/core/userconfig
+	registry_add --string "`path_to_win $PREFIX/tex.config`" /HKCU/software/miktex.org/miktex/2.7/core/userconfig
 }
