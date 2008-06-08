@@ -4,7 +4,7 @@
 # package name
 # list of files and other options to z program
 #
-makepkg()
+makepkg_core()
 {
 	stat_log "creating package: $*"
 	if [ "x$2" == "x" ]; then
@@ -29,8 +29,18 @@ makepkg()
 makepkg_spec()
 {
 	for pkg in $*; do
-		makepkg tex.$pkg "tex.$pkg/*"
+		makepkg_core tex.$pkg "tex.$pkg/*"
 	done
 }
+
+makepkg()
+{
+	case $1 in
+	"txc")makepkg_core txc "tex.editor/txc*";;
+	"texmaker")makepkg_core texmaker "tex.editor/texmaker/*";;
+	*)makepkg_space $*;;
+	esac
+}
+
 
 stat_log "library loaded: vnmik.package.make"
