@@ -197,22 +197,8 @@ check_PDFReader()
 	# If you like Foxit just replace `AcroExch' by `FoxitReader'
 
 	local PDF_READER_REG_PATH=/HKCR/AcroExch.Document/shell/open/command/
-	regtool -q check $PDF_READER_REG_PATH > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		PDFREADER=$(regtool -q get $PDF_READER_REG_PATH)
-		PDFREADER=$(echo "$PDFREADER" | sed -e 's/ "%1"//g' -e 's/"//g')
-		export PDFREADER=$(cygpath -u "$PDFREADER" 2>/dev/null )
-		if [ -f "$PDFREADER" -a -x "$PDFREADER" ]; then
-			stat_done "PdfReader: $PDFREADER"
-		else
-			stat_warn "PdfReader found in registry but it isnot executable. use Acrobat Reader as default"
-			export PDFREADER=$PREFIX/tex.apps/acroread/acrord32.exe
-			stat_warn "use default: $PDFREADER"
-		fi
-	else
-		export PDFREADER=$PREFIX/tex.apps/acroread/acrord32.exe
-		stat_warn "not found: PdfReader. use Acrobat Reader as default"
-	fi
+	stat_warn "force to use Sumatra PDF Viewer"
+	export PDFREADER=$PREFIX/tex.bin/spdf.exe
 }
 
 check_UserHome()
