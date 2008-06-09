@@ -41,49 +41,60 @@ makepkg()
 {
 	local texmaker_files="qtcore4.dll qtgui4.dll mingwm10.dll texmaker.exe texmaker.ini"
 	local sumatra_pdf_files="spdf.exe"
-	case $1 in
+	while [ "x$1" != "x" ];
+	do
+		case $1 in
 	# editors
-	"txc")makepkg_core txc "tex.editor/txc*";;
-	"texmaker")
-		local pattern=""
-		for f in $texmaker_files; do
-			pattern="tex.bin/$f $pattern"
-		done
-		makepkg_core texmaker $pattern
-	;;
+		"txc")makepkg_core txc "tex.editor/txc*";;
+		"texmaker")
+			local pattern=""
+			for f in $texmaker_files; do
+				pattern="tex.bin/$f $pattern"
+			done
+			makepkg_core texmaker $pattern
+		;;
 	# test routines
-	"test")
-		# update the source files ;)
-		mkdir -p $ROOT_DIR/tex.doc/test/
-		rm -fv $ROOT_DIR/tex.doc/test/*
-		cp -fv \
-			$SRC_DIR/tex.doc/test/* \
-			$ROOT_DIR/tex.doc/test/	
-	
-		makepkg_core vnmik_test \
-			"tex.doc/test/*.tex"
-	;;
-	# tex variant and config 
-	"var")makepkg_core tex_var "";;
-	"config")makepkg_core tex_config "";;
+		"test")
+			# update the source files ;)
+			mkdir -p $ROOT_DIR/tex.doc/test/
+			rm -fv $ROOT_DIR/tex.doc/test/*
+			cp -fv \
+				$SRC_DIR/tex.doc/test/* \
+				$ROOT_DIR/tex.doc/test/	
+		
+			makepkg_core vnmik_test \
+				"tex.doc/test/*.tex"
+		;;
+	# tex variant and config . direcotires were completely ignored!!!!
+	# for next release, we should have option to use $USERPROFILE as var and config directory
+		"var")makepkg_core tex_var "";;
+		"config")makepkg_core tex_config "";;
 	# binary files
-	"bin")
-		echo '' > $LOGDIR/tmp
-		for f in $texmaker_files; do
-			echo "*tex.bin/$f*" >> $LOGDIR/tmp
-		done
-		makepkg_core tex.bin \
-			"tex.bin/*" \
-			--exclude-from-file=$LOGDIR/tmp
-	;;
+		"bin")
+			echo '' > $LOGDIR/tmp
+			for f in $texmaker_files; do
+				echo "*tex.bin/$f*" >> $LOGDIR/tmp
+			done
+			makepkg_core tex.bin \
+				"tex.bin/*" \
+				--exclude-from-file=$LOGDIR/tmp
+		;;
 	# texmf tree
-	"user")makepkg_core tex.user "tex.user/*";;
-	"base")makepkg_core tex.base "tex.base/*";;
+		"user")makepkg_core tex.user "tex.user/*";;
+		"base")makepkg_core tex.base "tex.base/*";;
 	# nothing for anything else....?
-	*)stat_msg "nothing to do";;
-	esac
+		*)stat_msg "nothing to do";;
+		esac
+	done	
 }
 
+makepkg_all()
+{
+	makepkg var bin test user config texmaker
+}
+
+# this is so bad. we must enter package directory to check sum :D
+# a hack script should be written for this purpose 
 make_md5checksum()
 {
 	stat_log "creating md5sum files for packages..."
