@@ -19,16 +19,21 @@ if [ ! -f $LOGDIR/VERSION ]; then
 	exit 1
 fi
 
-for script in $LOGDIR/z.*; do
+for script in $LOGDIR/z.*;
+do
 	tmp="`basename $script`"
 	pkg="${tmp:2:${#tmp}}"
-	stat_msg "re-execute script z.$pkg"
-	source $script
-	${pkg}_install --update
+	if [ "x$pkg" != "xvnmik_test" ];
+	then
+		stat_msg "re-execute script z.$pkg"
+		source $script
+		${pkg}_install --update
+	fi
 done
 
 texmf_texhash
 
-pause
+[ -f $LOGDIR/z.vnmik_test ] && vnmik_test_install --update
 
 cleanup
+pause
