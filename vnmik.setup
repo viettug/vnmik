@@ -8,6 +8,9 @@ source vnmik.package.installer
 source vnmik.package.make
 source vnmik.registry.tools
 
+# hack for setup ;)
+export PKGDIR="`pwd`/vnmik.package"
+
 hello
 
 msg
@@ -36,5 +39,7 @@ install_package \
 	$PKGDIR/{tex_{base,config,user,var},texmaker,vnmik_test}$PKG_SUFFIX
 
 texmf_texhash
+
+cleanup
 
 pause
