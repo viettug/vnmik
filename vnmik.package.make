@@ -8,7 +8,7 @@ export ROOTDIR=/cygdrive/c/data/vnmik
 #
 makepkg_core()
 {
-	stat_log "creating package: $*"
+	stat_msg "creating package: $*"
 	if [ "x$2" == "x" ]; then
 		stat_warn "($FUNCNAME) missing paramemeter"
 		return 1
@@ -26,6 +26,7 @@ makepkg_core()
 	z cfvj $dest $script $pattern | tee -a $LOGFILE
 	# stat_log "creating checksum file..."
 	# md5sum $dest > $dest.md5sum
+	stat_done "new package: $dest"
 }
 
 makepkg_spec()
