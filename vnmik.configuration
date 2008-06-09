@@ -15,7 +15,7 @@ export VERSION=4.0.0 # current vnmik version
 export MAJOR_VERSION=4 # the major version
 export VNMIKID=3141 # vnmik id; another way to save vnmik version
 # export VNMIKPW= # password to extract 7z archives
-export MIKTEX_VERSION='MikTeX-2.7.0000' # miktex version to be used
+export MIKTEX_VERSION='MikTeX-2.7' # miktex version to be used
 
 ##############################################################################
 # DoNOT change anything below PLEASE
