@@ -13,6 +13,7 @@ makepkg_core()
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
 	shift
 	local dest="$ROOTDIR/vnmik.makepkg/$pkg$PKG_SUFFIX"
+	mkdir -p `dirname $dest`
 	local pattern="$*"
 	local script=vnmik.log/z.$pkg
 	if [ ! -f $ROOTDIR/$script ];
