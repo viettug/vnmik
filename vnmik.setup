@@ -38,9 +38,13 @@ registry_backup
 echo -en '' > $LOGDIR/log.packages
 
 install_package \
-	$PKGDIR/{tex_{base,config,user,var,bin},texmaker,vnmik_test}$PKG_SUFFIX
+	$PKGDIR/{tex_{base,config,user,var,bin},texmaker}$PKG_SUFFIX
 
 texmf_texhash
+
+stat_msg "test if the system works..."
+
+install_package $PKGDIR/vnmik_test$PKG_SUFFIX
 
 cleanup
 
