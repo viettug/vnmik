@@ -40,10 +40,12 @@ clear_log() # clear vnmik log file and start new log
 
 pause() # pause for 5 seconds
 {
+	local ztime="$1"
+	[ ! -z "$ztime" ] || ztime=5
 	set_color 31
 	echo ">>>"
-	echo ">>> press any key to continue [ timeout: 5 seconds ]"
-	read -n1 -t 5 -s
+	echo ">>> press any key to continue [ timeout: $ztime seconds ]"
+	read -n1 -t $ztime -s
 	set_color 0
 }
 
@@ -111,8 +113,7 @@ texmf_texhash() # update miktex databased and make fonts maps
 	else
 		for option in "--dump --mklinks" "--mkmaps" "--update-fndb"; do		
 			stat_log "running: initexmf --verbose $option"
-			$TEXHASH --verbose $option
-			stat_log "return status: $?"
+			$TEXHASH --verbose $option	|| stat_log "return status: $?"
 		done	
 	fi
 }
