@@ -1,6 +1,7 @@
 #!bash
 
 export ROOTDIR=/cygdrive/c/data/vnmik
+export ROOTDIR=$PREFIX
 
 # make vnmik package
 # package name
@@ -9,40 +10,62 @@ export ROOTDIR=/cygdrive/c/data/vnmik
 makepkg_core()
 {
 	stat_msg "creating package: $*"
-	if [ "x$2" == "x" ]; then
-		stat_warn "($FUNCNAME) missing paramemeter"
-		return 1
-	fi
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
+	shift
 	local dest="$ROOTDIR/vnmik.makepkg/$pkg$PKG_SUFFIX"
-	local pattern="$2"
+	local pattern="$*"
 	local script=vnmik.log/z.$pkg
-	if [ ! -f $ROOTDIR/$script ]; then
+	if [ ! -f $ROOTDIR/$script ];
+	then
 		stat_log "cannot find script file: $script"
 		script=
 	fi
-	[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
-	cd $ROOTDIR
-	z cfvj $dest $script $pattern | tee -a $LOGFILE
-	# stat_log "creating checksum file..."
-	# md5sum $dest > $dest.md5sum
-	stat_msg "new package: $dest"
-}
-
-makepkg_spec()
-{
-	for pkg in $*; do
-		makepkg_core tex.$pkg "tex.$pkg/*"
-	done
+	if [ "x$script$pattern" == "x" ];
+	then
+		stat_warn "both script and pattern is emtpy"
+		return 1
+	else
+		[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
+		cd $ROOTDIR
+		z cfvj $dest $script $pattern | tee -a $LOGFILE
+		stat_msg "new package: $dest"
+	fi	
 }
 
 makepkg()
 {
+	local texmaker_files="qtcore4.dll qtgui4.dll mingwm10.dll texmaker.exe texmaker.ini"
+	local sumatra_pdf_files="spdf.exe"
 	case $1 in
+	# editors
 	"txc")makepkg_core txc "tex.editor/txc*";;
-	"texmaker")makepkg_core texmaker "tex.editor/texmaker/*";;
+	"texmaker")
+		local pattern=""
+		for f in $texmaker_files; do
+			pattern="tex.bin/$f $pattern"
+		done
+		makepkg_core texmaker $pattern
+	;;
+	# test routines
 	"test")makepkg_core vnmik_test "tex.doc/test/*.tex";;
-	*)makepkg_spec $*;;
+	# tex variant and config 
+	"var")makepkg_core tex_var "";;
+	"config")makepkg_core tex_config "";;
+	# binary files
+	"bin")
+		echo '' > $LOGDIR/tmp
+		for f file in $texmaker_files; do
+			echo "*tex.bin/$f*" >> $LOGDIR/tmp
+		done
+		makepkg_core tex.bin \
+			"tex.bin/*" \
+			--exclude-from-file=$LOGDIR/tmp
+	;;
+	# texmf tree
+	"user")makepkg_core tex.user "tex.user/*";;
+	"base")makepkg_core tex.base "tex.base/*";;
+	# nothing for anything else....?
+	*)stat_msg "nothing to do";;
 	esac
 }
 
