@@ -1,7 +1,7 @@
 #!bash
 
-export ROOTDIR=/cygdrive/c/data/vnmik
-export ROOTDIR=$PREFIX
+export SRC_DIR=/cygdrive/c/data/vnmik
+export ROOT_DIR=$PREFIX
 
 # make vnmik package
 # package name
@@ -12,11 +12,15 @@ makepkg_core()
 	stat_msg "creating package: $*"
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
 	shift
-	local dest="$ROOTDIR/vnmik.makepkg/$pkg$PKG_SUFFIX"
+	local dest="$ROOT_DIR/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	mkdir -p `dirname $dest`
 	local pattern="$*"
 	local script=vnmik.log/z.$pkg
-	if [ ! -f $ROOTDIR/$script ];
+	if [ -f $SRC_DIR/$script ]; then
+		cp $SRC_DIR/$script $ROOT_DIR/$script >/dev/null 2>/dev/null
+		stat_log "copy $script from $SRC_DIR to $ROOT_DIR; return status: $?"
+	fi
+	if [ ! -f $ROOT_DIR/$script ];
 	then
 		stat_log "cannot find script file: $script"
 		script=
@@ -27,7 +31,7 @@ makepkg_core()
 		return 1
 	else
 		[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
-		cd $ROOTDIR
+		cd $ROOT_DIR
 		z cfvj $dest $script $pattern | tee -a $LOGFILE
 		stat_msg "new package: $dest"
 	fi	
@@ -82,11 +86,11 @@ make_md5checksum()
 
 make_distro()
 {
-	cd $ROOTDIR
-	local dest="$ROOTDIR/../vnmik4-`date +%Y%m%d`.zip"
+	cd $ROOT_DIR
+	local dest="$ROOT_DIR/../vnmik4-`date +%Y%m%d`.zip"
 	rm -fv $dest
 	stat_log "creating vnmik distro: $dest"
-	stat_log "start from ROOTDIR=$ROOTDIR"
+	stat_log "start from ROOT_DIR=$ROOT_DIR"
 	zip -0r \
 		$dest \
 		./bin/ \
