@@ -148,5 +148,6 @@ msg()
 
 # initialize something
 # ok. let's intialize something
+[ -d $LOGDIR ] || mkdir -p $LOGDIR
 stat_prefix
 stat_log "library loaded: vnmik.message.utils"
