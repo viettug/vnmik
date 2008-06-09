@@ -1,5 +1,7 @@
 #!bash
 
+export ROOTDIR=/cygdrive/c/data/vnmik
+
 # make vnmik package
 # package name
 # list of files and other options to z program
@@ -12,15 +14,15 @@ makepkg_core()
 		return 1
 	fi
 	local pkg="`echo $1 | sed -e 's/\./_/g'`"
-	local dest="$PREFIX/vnmik.makepkg/$pkg$PKG_SUFFIX"
+	local dest="$ROOTDIR/vnmik.makepkg/$pkg$PKG_SUFFIX"
 	local pattern="$2"
 	local script=vnmik.log/z.$pkg
-	if [ ! -f $PREFIX/$script ]; then
+	if [ ! -f $ROOTDIR/$script ]; then
 		stat_log "cannot find script file: $script"
 		script=
 	fi
 	[ -f $dest ] && (stat_log "removing old package $dest"; rm -fv $dest)
-	cd $PREFIX
+	cd $ROOTDIR
 	z cfvj $dest $script $pattern | tee -a $LOGFILE
 	# stat_log "creating checksum file..."
 	# md5sum $dest > $dest.md5sum
@@ -55,17 +57,18 @@ make_md5checksum()
 
 make_distro()
 {
-	cd $PREFIX
-	local dest="$PREFIX/../data/vnmik4-`date +%Y%m%d`.zip"
+	cd $ROOTDIR
+	local dest="$ROOTDIR/../vnmik4-`date +%Y%m%d`.zip"
 	rm -fv $dest
 	stat_log "creating vnmik distro: $dest"
+	stat_log "start from ROOTDIR=$ROOTDIR"
 	zip -0r \
 		$dest \
 		./bin/ \
 		./vnmik.package/*$PKG_SUFFIX \
 		./*.bat \
 		-x "*svn*"
-	cd -	
+	cd -
 }
 
 stat_log "library loaded: vnmik.package.make"
