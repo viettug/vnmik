@@ -22,17 +22,14 @@
 
 source vnmik.configuration
 
-trap 'cleanup' SIGTERM SIGKILL SIGINT
+trap 'cleanup' SIGTERM SIGKILL SIGINT SIGQUIT
 
 cleanup() # cleanup vnmik installation
 {
 	rm -f $LOGDIR/{lock,tmp,tmpi} "$@" >/dev/null 2>&1
-	stat_log ""
-	stat_log "=== `date` ==="
-	stat_log "=== END OF SESSION === "
-	stat_log ""
-	stat_log "=== NEW SESSION ==="
-	stat_log ""
+	stat_log
+	stat_log "=== END SESSION `date` ==="
+	stat_log
 }
 
 clear_log() # clear vnmik log file and start new log
