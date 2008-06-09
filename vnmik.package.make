@@ -85,6 +85,8 @@ makepkg()
 	# nothing for anything else....?
 		*)stat_msg "nothing to do";;
 		esac
+
+		shift
 	done	
 }
 
