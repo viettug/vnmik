@@ -114,11 +114,11 @@ make_md5checksum()
 
 make_distro()
 {
-	cd $ROOT_DIR
-	local dest="$ROOT_DIR/../vnmik4-`date +%Y%m%d`.zip"
+	cd $SRC_DIR
+	local dest="$SRC_DIR/../vnmik4-`date +%Y%m%d`.zip"
 	rm -fv $dest
 	stat_log "creating vnmik distro: $dest"
-	stat_log "start from ROOT_DIR=$ROOT_DIR"
+	stat_log "start from SRC_DIR=$SRC_DIR"
 	zip -0r \
 		$dest \
 		./bin/ \
