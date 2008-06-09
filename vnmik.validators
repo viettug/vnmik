@@ -110,13 +110,13 @@ check_RFiles()
 check_DiskSpace()
 {
 	local MINSIZE="$1"
-	[ ! -z $MINSIZE ] || MINSIZE=0
+	[ "x$MINSIZE" != "x" ] || MINSIZE=0
 	local DISKSPACE=$(df "$PREFIX" | tail -1 | gawk '{print $4;}')
 	DISKSPACE=$((DISKSPACE/1024))
 	if [ $DISKSPACE -gt $MINSIZE ]; then
 		stat_done "disk space ok (require $MINSIZE MB, have $DISKSPACE MB)"
 	else
-		stat_fail "disk space NOT enough (require $MINSIZE MB, have $DISKSPACE MB)"
+		stat_fail --exit "disk space NOT enough (require $MINSIZE MB, have $DISKSPACE MB)"
 	fi
 }
 
