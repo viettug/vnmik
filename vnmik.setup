@@ -14,6 +14,24 @@ msg
 stat_msg "INSTALLING"
 msg
 
+check_PreviousInstance
+check_PreviousVersion
+check_OS
+check_RWVnMik
+check_DiskSpace 120
+
+check_RWRegistryDatabase
+check_PATHinRegistry
+
+check_PDFReader
+
+check_UserHome
+check_RegeditProgram
+check_PowerPrivilege
+
+install_version
+registry_backup
+
 install_package \
 	$PKGDIR/{tex_{base,config,user,var},texmaker,vnmik_test}$PKG_SUFFIX
 
