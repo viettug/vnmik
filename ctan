@@ -189,11 +189,16 @@ ctan_update()
 		
 }
 
+check_first_time()
+{
+	[[ -d $DESTDIR/ ]] || ctan_update --first-time --use-cache
+}
+
 # search something
 
 ctan_search()
 {
-	[[ -d $DESTDIR/ ]] || ctan_update --first-time --use-cache
+	check_fist_time
 	if [[ "x$1" == "x-file" ]]; then
 		shift
 		grep $* $DESTDIR/files.txt | grep -v obsolete
@@ -210,6 +215,7 @@ ctan_search()
 
 ctan_get()
 {
+	check_first_time
 	ctan_search $* > $DESTDIR/tmp.txt
 	if [[ $? -gt 0 ]]; then
 		msg "no package matches '$*'"

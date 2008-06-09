@@ -290,10 +290,15 @@ vnmik()
 
 	case $1 in
 	"list")
-		stat_done "all package(s) found on your system"
-		for pkg in $PKGDIR/*$PKG_SUFFIX; do
-			msg "\t" `basename $pkg $PKG_SUFFIX`
-		done
+		ls $PKGDIR/*$PKG_SUFFIX 2>/dev/null
+		if [ $? == 0 ]; then
+			stat_done "package in $PKGDIR:"
+			for pkg in $PKGDIR/*$PKG_SUFFIX; do
+				msg "\t" `basename $pkg $PKG_SUFFIX`
+			done
+		else
+			msg "no package found in $PKGDIR/"
+		fi	
 	;;
 	"ins")
 		check_arg $* || return 1
