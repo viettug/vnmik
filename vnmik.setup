@@ -38,7 +38,7 @@ registry_backup
 echo -en '' > $LOGDIR/log.package
 
 install_package \
-	$PKGDIR/{tex_{base,config,user,var},texmaker,vnmik_test}$PKG_SUFFIX
+	$PKGDIR/{tex_{base,config,user,var,bin},texmaker,vnmik_test}$PKG_SUFFIX
 
 texmf_texhash
 
