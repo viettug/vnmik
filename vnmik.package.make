@@ -26,7 +26,7 @@ makepkg_core()
 	z cfvj $dest $script $pattern | tee -a $LOGFILE
 	# stat_log "creating checksum file..."
 	# md5sum $dest > $dest.md5sum
-	stat_done "new package: $dest"
+	stat_msg "new package: $dest"
 }
 
 makepkg_spec()
