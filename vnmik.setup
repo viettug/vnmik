@@ -35,7 +35,7 @@ check_PowerPrivilege
 install_version
 registry_backup
 
-echo -en '' > $LOGDIR/log.package
+echo -en '' > $LOGDIR/log.packages
 
 install_package \
 	$PKGDIR/{tex_{base,config,user,var,bin},texmaker,vnmik_test}$PKG_SUFFIX
