@@ -77,7 +77,7 @@ makepkg()
 			done
 			makepkg_core tex.bin \
 				"tex.bin/*" \
-				--exclude-from-file=$LOGDIR/tmp
+				--exclude-from=$LOGDIR/tmp
 		;;
 	# texmf tree
 		"user")makepkg_core tex.user "tex.user/*";;
@@ -92,7 +92,12 @@ makepkg()
 
 makepkg_all()
 {
-	makepkg var bin test user config texmaker
+	makepkg \
+		base user \
+		var config \
+		bin \
+		texmaker \
+		test
 }
 
 # this is so bad. we must enter package directory to check sum :D
