@@ -54,7 +54,7 @@ makepkg()
 	# binary files
 	"bin")
 		echo '' > $LOGDIR/tmp
-		for f file in $texmaker_files; do
+		for f in $texmaker_files; do
 			echo "*tex.bin/$f*" >> $LOGDIR/tmp
 		done
 		makepkg_core tex.bin \
