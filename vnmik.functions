@@ -80,10 +80,12 @@ hello() # print the hello message
 	echo '/------------------------------------\ '
 	echo -n '| '
 	set_color 33 ; echo -n "VnMiK";	set_color $HELLOC
-	echo ": small MiKTeX for Vietnamese"
+	echo " -- make TeX easier"
 	echo -n '| '"Version: "
 	set_color 33 ; echo -n $VERSION; set_color $HELLOC
-	echo " ($MIKTEXVERSION based)"
+	echo -n " with "
+	set_color 33 ; echo "USB support"; set_color $HELLOC
+	echo "| Based on $MIKTEX_VERSION"
 	echo -n '| '"Homepage: "
 	set_color 33 ; echo "http://vnmik.sf.net/"; set_color $HELLOC
 	echo '\------------------------------------/ '
