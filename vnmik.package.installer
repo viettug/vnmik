@@ -126,7 +126,7 @@ install_package_A()
 	local XSUFFIX=
 	eval XSUFFIX=\$${TYPE}_SUFFIX # get the suffix for type. Excellent stuff :)
 	stat_log "suffix for packages of this type: $XSUFFIX"
-	local DEST=`cygpath -w $PREFIX`
+	local DEST="$PREFIX"
 	stat_log "package will be installed to $DEST"
 
 	shift # skip package TYPE
@@ -168,9 +168,9 @@ install_package_A()
 				continue
 			fi	
 			stat_msh "extracting..."
-			${TYPE}_EXTRACT "$1" "$DEST" >$LOGDIR/tmp 2>/dev/null
+			${TYPE}_EXTRACT "$1" "$DEST" > $LOGDIR/log.$PACKAGE 2>/dev/null
 			stat_log "package extracted; type: $TYPE; return value $?"
-			${TYPE}_GREP $LOGDIR/tmp > $LOGDIR/log.$PACKAGE
+			# ${TYPE}_GREP $LOGDIR/tmp > $LOGDIR/log.$PACKAGE
 			if [ -f $LOGDIR/z.$PACKAGE ];
 			then
 				stat_msg "post-install"
@@ -314,9 +314,13 @@ vnmik()
 	;;
 	"get")
 		check_arg $* || return 1
-		local pkg="$2"
-		stat_msg "downloading $pkg$PKG_SUFFIX from $repos"
-		wget "$repos/$pkg$PKG_SUFFIX" -O $PKGDIR/$pkg$PKG_SUFFIX
+		local pkg="$2$PKG_SUFFIX"
+		stat_msg "downloading $pkg from $repos"
+		if [ -f $PKGDIR/$pkg ]; then
+			query "y" "Package does exist. overwrite"
+			[ $? == 0 ] || return 1			
+		fi
+		wget "$repos/$pkg$PKG_SUFFIX" -O $PKGDIR/$pkg
 		stat_log "wget returns $?"
 	;;
 	*)
