@@ -17,7 +17,7 @@ makepkg_core()
 	local pattern="$*"
 	local script=vnmik.log/z.$pkg
 	if [ -f $SRC_DIR/$script ]; then
-		cp $SRC_DIR/$script $ROOT_DIR/$script >/dev/null 2>/dev/null
+		cp -fv $SRC_DIR/$script $ROOT_DIR/$script
 		stat_log "copy $script from $SRC_DIR to $ROOT_DIR; return status: $?"
 	fi
 	if [ ! -f $ROOT_DIR/$script ];
@@ -52,7 +52,17 @@ makepkg()
 		makepkg_core texmaker $pattern
 	;;
 	# test routines
-	"test")makepkg_core vnmik_test "tex.doc/test/*.tex";;
+	"test")
+		# update the source files ;)
+		mkdir -p $ROOT_DIR/tex.doc/test/
+		rm -fv $ROOT_DIR/tex.doc/test/*
+		cp -fv \
+			$SRC_DIR/tex.doc/test/* \
+			$ROOT_DIR/tex.doc/test/	
+	
+		makepkg_core vnmik_test \
+			"tex.doc/test/*.tex"
+	;;
 	# tex variant and config 
 	"var")makepkg_core tex_var "";;
 	"config")makepkg_core tex_config "";;
