@@ -150,8 +150,7 @@ msg()
 # ok. let's intialize something
 [ -d $LOGDIR ] || mkdir -p $LOGDIR
 stat_prefix
-stat_log "library loaded: vnmik.message.utils"
-
 stat_log
 stat_log "=== BEGIN NEW SESSION `date` ==="
 stat_log
+stat_log "library loaded: vnmik.message.utils"
