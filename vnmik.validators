@@ -284,8 +284,8 @@ check_PreviousVersion() # check for previous version of VnMiK
 		else
 			stat_done "query passed"
 		fi
-	elif [ -d $PREFIX ]; then
-		stat_fail --exit "please delete `cygpath -w $PREFIX`"
+#	elif [ -d $PREFIX ]; then
+#		stat_fail --exit "please delete $PREFIX"
 	else
 		stat_done "previous VnMiK: none"
 	fi
