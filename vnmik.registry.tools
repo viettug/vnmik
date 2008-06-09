@@ -19,10 +19,10 @@ registry_backup()
 	cd $prefix
 
 	echo -ne '' > tmp
-	reg export 'HKCU\Software\Classes\.dvi' dvi.reg >> tmp
-	reg export 'HKCU\Software\Classes\.ps' ps.reg >> tmp
-	reg export 'HKCU\Software\MiKTeX.org\MiKTeX\2.7' mik1.reg >> tmp
-	reg export 'HKLM\Software\MiKTeX.org\MiKTeX\2.7' mik2.reg >> tmp
+	reg export 'HKCU\Software\Classes\.dvi' dvi.reg >> tmp 2>>nul
+	reg export 'HKCU\Software\Classes\.ps' ps.reg >> tmp 2>>nul
+	reg export 'HKCU\Software\MiKTeX.org\MiKTeX\2.7' mik1.reg >> tmp 2>>nul
+	reg export 'HKLM\Software\MiKTeX.org\MiKTeX\2.7' mik2.reg >> tmp 2>>nul
 	[ -f "$USERHOME/gsview32.ini" ] && (cp "$USERHOME/gsview32.ini" gsview32.ini -v >> tmp)
 	stat_log_file tmp
 }
